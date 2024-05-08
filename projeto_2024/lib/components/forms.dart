@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_2024/pages/main_page.dart';
 
 class Forms extends StatefulWidget {
   const Forms({super.key});
@@ -75,5 +76,11 @@ class _FormsState extends State<Forms> {
     );
   }
 
-  void entrar() {}
+  void entrar() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const MainPage(),
+      ),
+    );
+  }
 }
