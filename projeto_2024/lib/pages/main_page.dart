@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/components/graphs.dart';
+import 'package:projeto_2024/const/consts.dart';
 import 'package:projeto_2024/pages/login_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -11,16 +13,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
-
-  static const List<Widget> _widgetOptions = <Widget>[
-    LoginPage(),
-    Text(
-      'Index 1: Business',
-    ),
-    Text(
-      'Index 2: School',
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -68,7 +60,7 @@ class _MainPageState extends State<MainPage> {
                 width: 10,
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: logoutFunc,
                 icon: const Icon(Icons.logout_outlined),
               )
             ],
@@ -92,10 +84,10 @@ class _MainPageState extends State<MainPage> {
               ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: 3,
+                  itemCount: values.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      title: Text(index.toString()),
+                      title: Text("Caixa: ${values[index]['nome']}"),
                       onTap: () {
                         _onItemTapped(index);
                       },
@@ -106,10 +98,48 @@ class _MainPageState extends State<MainPage> {
             ],
           ),
         ),
-        body: Center(
-          child: _widgetOptions[currentIndex],
+        body: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                GraphsComponent(
+                  index: currentIndex,
+                  dayData: values,
+                ),
+                GraphsComponent(
+                  index: currentIndex,
+                  dayData: values,
+                ),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                GraphsComponent(
+                  index: currentIndex,
+                  dayData: values,
+                ),
+                GraphsComponent(
+                  index: currentIndex,
+                  dayData: values,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+
+  void logoutFunc() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const Material(child: LoginPage()),
+      ),
+    );
+  }
+
+  void searchBarFunc() {}
 }
