@@ -5,6 +5,7 @@ import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/graphs.dart';
 import 'package:projeto_2024/const/consts.dart';
 import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -47,6 +48,11 @@ class _MainPageState extends State<MainPage> {
                 child: GestureDetector(
                   onTap: () {
                     ModelA().getHidro1();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterPage(),
+                      ),
+                    );
                   },
                   child: Container(
                     padding:
