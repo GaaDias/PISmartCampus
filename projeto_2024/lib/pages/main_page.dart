@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_2024/Models/models.dart';
+import 'package:projeto_2024/charts/linechart.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/graphs.dart';
 import 'package:projeto_2024/const/consts.dart';
@@ -43,7 +45,9 @@ class _MainPageState extends State<MainPage> {
                   corBotao = Colors.transparent;
                 }),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    ModelA().getHidro1();
+                  },
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -108,10 +112,7 @@ class _MainPageState extends State<MainPage> {
                   index: currentIndex,
                   dayData: values,
                 ),
-                GraphsComponent(
-                  index: currentIndex,
-                  dayData: values,
-                ),
+                MyLineChart()
               ],
             ),
             Column(

@@ -11,6 +11,7 @@ dependencies:
   fluentui_system_icons: ^1.1.238
   flutter:
     sdk: flutter
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:

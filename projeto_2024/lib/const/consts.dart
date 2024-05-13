@@ -8,13 +8,3 @@ var values = [
     'idade': [12, 1, 2, 3, 4, 5, 2],
   }
 ];
-
-var daysWeek = {
-  "seg",
-  "ter",
-  "qua",
-  "qui",
-  "sex",
-  "sab",
-  "dom",
-};
