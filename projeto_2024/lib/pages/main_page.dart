@@ -44,7 +44,9 @@ class _MainPageState extends State<MainPage> {
                   corBotao = Colors.transparent;
                 }),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    modelA.getHidro1();
+                  },
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

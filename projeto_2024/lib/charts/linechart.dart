@@ -12,10 +12,18 @@ class MyLineChart extends StatefulWidget {
 List<FlSpot> generateFlSpots(ModelA modelA) {
   List<FlSpot> spots = [];
 
-  if (modelA.dadosHidrometric1.isNotEmpty) {
-    List<dynamic> dataCounter = modelA.dadosHidrometric1[0]['data_counter'];
-    for (int i = 0; i < dataCounter.length && i <= 15; i++) {
-      spots.add(FlSpot(i.toDouble(), dataCounter[i].toDouble()));
+  if (modelA.dadosWaterTank.isNotEmpty) {
+    List<dynamic>? dataCounter =
+        modelA.dadosWaterTank[0]['data_distance'] as List<dynamic>?;
+
+    if (dataCounter != null) {
+      for (int i = 0; i < dataCounter.length && i <= 15; i++) {
+        spots.add(FlSpot(i.toDouble(), dataCounter[i].toDouble()));
+      }
+    } else {
+      for (int i = 0; i <= 15; i++) {
+        spots.add(FlSpot(i.toDouble(), 0.0));
+      }
     }
   } else {
     for (int i = 0; i <= 15; i++) {
@@ -23,6 +31,7 @@ List<FlSpot> generateFlSpots(ModelA modelA) {
     }
   }
 
+  print('Generated spots: $spots'); // Debug statement
   return spots;
 }
 
@@ -44,7 +53,7 @@ class _MyLineChartState extends State<MyLineChart> {
 
   @override
   Widget build(BuildContext context) {
-    return modelA.dadosHidrometric1.isNotEmpty
+    return modelA.dadosWaterTank.isNotEmpty
         ? buildChart()
         : buildLoadingIndicator();
   }
@@ -56,7 +65,10 @@ class _MyLineChartState extends State<MyLineChart> {
   }
 
   Widget buildChart() {
-    List<dynamic> dataCounter = modelA.dadosHidrometric1[0]['data_counter'];
+    List<dynamic>? dataCounter =
+        modelA.dadosWaterTank[0]['data_distance'] as List<dynamic>?;
+
+    print('Building chart with dataCounter: $dataCounter'); // Debug statement
 
     return Container(
       height: 260,
@@ -79,9 +91,11 @@ class _MyLineChartState extends State<MyLineChart> {
           minX: 0,
           minY: 0,
           maxX: 15,
-          maxY: dataCounter
-              .reduce((value, element) => value > element ? value : element)
-              .toDouble(),
+          maxY: dataCounter != null && dataCounter.isNotEmpty
+              ? dataCounter
+                  .reduce((value, element) => value > element ? value : element)
+                  .toDouble()
+              : 1.0,
           lineBarsData: [
             LineChartBarData(
               spots: generateFlSpots(modelA),
