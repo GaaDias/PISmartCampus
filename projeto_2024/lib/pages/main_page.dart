@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/charts/linechart.dart';
 import 'package:projeto_2024/colors/colors.dart';
-import 'package:projeto_2024/components/graphs.dart';
 import 'package:projeto_2024/const/consts.dart';
 import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
@@ -16,7 +15,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
-
+  ModelA modelA = ModelA();
   void _onItemTapped(int index) {
     setState(() {
       currentIndex = index;
@@ -47,12 +46,14 @@ class _MainPageState extends State<MainPage> {
                 }),
                 child: GestureDetector(
                   onTap: () {
-                    ModelA().getHidro1();
+
+                    modelA.getHidro1();
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const RegisterPage(),
                       ),
                     );
+
                   },
                   child: Container(
                     padding:
@@ -114,25 +115,12 @@ class _MainPageState extends State<MainPage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                GraphsComponent(
-                  index: currentIndex,
-                  dayData: values,
-                ),
-                MyLineChart()
+                MyLineChart(),
               ],
             ),
-            Column(
+            const Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                GraphsComponent(
-                  index: currentIndex,
-                  dayData: values,
-                ),
-                GraphsComponent(
-                  index: currentIndex,
-                  dayData: values,
-                ),
-              ],
+              children: [],
             ),
           ],
         ),

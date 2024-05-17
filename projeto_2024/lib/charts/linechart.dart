@@ -3,10 +3,36 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:projeto_2024/Models/models.dart';
 
 class MyLineChart extends StatefulWidget {
-  MyLineChart({super.key});
+  MyLineChart({Key? key}) : super(key: key);
 
   @override
   State<MyLineChart> createState() => _MyLineChartState();
+}
+
+List<FlSpot> generateFlSpots(ModelA modelA) {
+  List<FlSpot> spots = [];
+
+  if (modelA.dadosWaterTank.isNotEmpty) {
+    List<dynamic>? dataCounter =
+        modelA.dadosWaterTank[0]['data_distance'] as List<dynamic>?;
+
+    if (dataCounter != null) {
+      for (int i = 0; i < dataCounter.length && i <= 15; i++) {
+        spots.add(FlSpot(i.toDouble(), dataCounter[i].toDouble()));
+      }
+    } else {
+      for (int i = 0; i <= 15; i++) {
+        spots.add(FlSpot(i.toDouble(), 0.0));
+      }
+    }
+  } else {
+    for (int i = 0; i <= 15; i++) {
+      spots.add(FlSpot(i.toDouble(), 0.0));
+    }
+  }
+
+  print('Generated spots: $spots'); // Debug statement
+  return spots;
 }
 
 class _MyLineChartState extends State<MyLineChart> {
@@ -27,6 +53,23 @@ class _MyLineChartState extends State<MyLineChart> {
 
   @override
   Widget build(BuildContext context) {
+    return modelA.dadosWaterTank.isNotEmpty
+        ? buildChart()
+        : buildLoadingIndicator();
+  }
+
+  Widget buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(), // Show loading indicator
+    );
+  }
+
+  Widget buildChart() {
+    List<dynamic>? dataCounter =
+        modelA.dadosWaterTank[0]['data_distance'] as List<dynamic>?;
+
+    print('Building chart with dataCounter: $dataCounter'); // Debug statement
+
     return Container(
       height: 260,
       width: 500,
@@ -37,44 +80,38 @@ class _MyLineChartState extends State<MyLineChart> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 5,
             blurRadius: 7,
-            offset: Offset(0, 3), // changes position of shadow
+            offset: const Offset(0, 3), // changes position of shadow
           ),
         ],
         borderRadius: BorderRadius.circular(15),
       ),
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.only(left: 10, bottom: 10, right: 40, top: 40),
       child: LineChart(
         LineChartData(
           minX: 0,
           minY: 0,
           maxX: 15,
-          maxY: 100,
+          maxY: dataCounter != null && dataCounter.isNotEmpty
+              ? dataCounter
+                  .reduce((value, element) => value > element ? value : element)
+                  .toDouble()
+              : 1.0,
           lineBarsData: [
             LineChartBarData(
-              spots: [
-                FlSpot(
-                    0,
-                    modelA.dados.isNotEmpty
-                        ? modelA.dados[0]['data_counter'][0].toDouble()
-                        : 0.0),
-                FlSpot(
-                    1,
-                    modelA.dados.isNotEmpty
-                        ? modelA.dados[0]['data_counter'][1].toDouble()
-                        : 0.0),
-                FlSpot(
-                    2,
-                    modelA.dados.isNotEmpty
-                        ? modelA.dados[0]['data_counter'][2].toDouble()
-                        : 0.0),
-                FlSpot(
-                    3,
-                    modelA.dados.isNotEmpty
-                        ? modelA.dados[0]['data_counter'][3].toDouble()
-                        : 0.0),
-              ],
+              spots: generateFlSpots(modelA),
+              isCurved: false,
+              dotData: FlDotData(
+                show: false,
+              ),
             ),
           ],
+          borderData: FlBorderData(
+              border: const Border(bottom: BorderSide(), left: BorderSide())),
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
         ),
       ),
     );
