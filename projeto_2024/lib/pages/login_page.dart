@@ -15,15 +15,15 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Expanded(
           flex: 2,
-          child: Container(
-            color: Colors.blue,
+          child: Image.asset(
+            'assets/images/Designer.jpeg',
+            fit: BoxFit.fill,
           ),
         ),
-        const Expanded(
-          flex: 1,
-          child: Forms()
-        )
+        const Expanded(flex: 1, child: Forms())
       ],
     );
   }
+
+  void logaUsuario() {}
 }

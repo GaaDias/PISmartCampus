@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/rendering.dart';
 import 'package:projeto_2024/Models/models.dart';
+import 'package:projeto_2024/colors/colors.dart';
 
 class MyLineChart extends StatefulWidget {
   final int index;
@@ -13,29 +15,47 @@ class MyLineChart extends StatefulWidget {
   State<MyLineChart> createState() => _MyLineChartState();
 }
 
-List<FlSpot> generateFlSpots(ModelA modelA, int index) {
+class FlSpotAndTimestamps {
+  List<FlSpot> spots;
+  List<String> timestamps;
+
+  FlSpotAndTimestamps(this.spots, this.timestamps);
+}
+
+FlSpotAndTimestamps generateFlSpots(ModelA modelA, int index) {
   List<FlSpot> spots = [];
+  List<String> timestamps = [];
 
   if (modelA.dadosWaterTank.isNotEmpty) {
     List<dynamic>? dataCounter =
         modelA.dadosWaterTank[index]['data_distance'] as List<dynamic>?;
+    List<dynamic>? timestampsData =
+        modelA.dadosWaterTank[index]['timestamp'] as List<dynamic>?;
 
-    if (dataCounter != null) {
-      for (int i = 0; i < dataCounter.length && i < 15; i++) {
-        spots.add(FlSpot(i.toDouble(), dataCounter[i].toDouble()));
+    if (dataCounter != null && timestampsData != null) {
+      int length = dataCounter.length;
+      int start = length > 15 ? length - 15 : 0;
+
+      for (int i = start; i < length; i++) {
+        spots.add(FlSpot(i - start.toDouble(), dataCounter[i].toDouble()));
+        String timestamp = timestampsData[i].toString();
+        timestamps.add(
+            timestamp.substring(timestamp.length - 8)); // get last 8 characters
       }
     } else {
       for (int i = 0; i < 15; i++) {
         spots.add(FlSpot(i.toDouble(), 0.0));
+        timestamps.add('');
       }
     }
   } else {
     for (int i = 0; i < 15; i++) {
       spots.add(FlSpot(i.toDouble(), 0.0));
+      timestamps.add('');
     }
   }
 
-  return spots;
+  return FlSpotAndTimestamps(spots, timestamps);
 }
 
 class _MyLineChartState extends State<MyLineChart> {
@@ -81,9 +101,13 @@ class _MyLineChartState extends State<MyLineChart> {
           1000;
     }
 
+    final flSpotAndTimestamps = generateFlSpots(modelA, widget.index);
+    final spots = flSpotAndTimestamps.spots;
+    final timestamps = flSpotAndTimestamps.timestamps;
+
     return Container(
-      height: 260,
-      width: 500,
+      height: 420,
+      width: 700,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -122,14 +146,30 @@ class _MyLineChartState extends State<MyLineChart> {
                 maxY: maxY,
                 lineBarsData: [
                   LineChartBarData(
-                    spots: generateFlSpots(modelA, widget.index),
+                    color: azulPadrao,
+                    spots: spots,
                     isCurved: false,
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color.fromARGB(51, 83, 162, 241),
+                      color: azulPadraoSemiInv,
                     ),
-                    dotData: const FlDotData(
-                      show: false,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        if (spot.y < 1000) {
+                          return FlDotCirclePainter(
+                            radius: 4,
+                            color: Colors.red,
+                            strokeWidth: 0,
+                          );
+                        } else {
+                          return FlDotCirclePainter(
+                            radius: 1,
+                            color: azulPadrao,
+                            strokeWidth: 0,
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -144,14 +184,35 @@ class _MyLineChartState extends State<MyLineChart> {
                   ),
                 ),
                 gridData: const FlGridData(show: true, drawVerticalLine: false),
-                titlesData: const FlTitlesData(
+                titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                         showTitles: true, interval: 1000, reservedSize: 32),
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
-                        showTitles: true, interval: 5, reservedSize: 32),
+                      showTitles: true,
+                      reservedSize: 64,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        if (value.toInt() < timestamps.length) {
+                          return SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            angle: 5.7,
+                            child: Text(
+                              timestamps[value.toInt()],
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const Text('');
+                        }
+                      },
+                    ),
                   ),
                   topTitles:
                       AxisTitles(sideTitles: SideTitles(showTitles: false)),
