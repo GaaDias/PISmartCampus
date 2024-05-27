@@ -38,6 +38,28 @@
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
+
+  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+       https://firebase.google.com/docs/web/setup#available-libraries -->
+
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyA4_o5VOKwJdsBqIQ2dT0TBJT2f-zn6QXY",
+      authDomain: "acquasysbd.firebaseapp.com",
+      projectId: "acquasysbd",
+      storageBucket: "acquasysbd.appspot.com",
+      messagingSenderId: "15792633050",
+      appId: "1:15792633050:web:1abbbc640d051ea7b1e1e3"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <script>
