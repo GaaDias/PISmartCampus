@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_2024/pages/main_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:projeto_2024/pages/login_page.dart';
 
