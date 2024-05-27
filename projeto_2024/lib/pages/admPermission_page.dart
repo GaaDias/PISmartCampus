@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
-import 'package:projeto_2024/pages/admPermission_page.dart';
+import 'package:projeto_2024/pages/newWatertank_page.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class AdmPermissionPage extends StatefulWidget {
+  const AdmPermissionPage({super.key});
 
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  _AdmPermissionPageState createState() => _AdmPermissionPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  String currentPage = 'Adicionar colaborador';
+class _AdmPermissionPageState extends State<AdmPermissionPage> {
+  String currentPage = 'Permissão de ADM';
 
   void logoutFunc(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
+      MaterialPageRoute(builder: (context) => const AdmPermissionPage()),
     );
   }
 
@@ -87,19 +88,19 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             ListTile(
-              title: const Text('Adicionar colaborador', style: TextStyle(color: Colors.black),),
+              title: const Text('Adicionar colaborador', style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Adicionar colaborador',
-              selectedTileColor: Colors.grey[350],
+              selectedTileColor: Colors.grey[300],
               onTap: () {
                 _navigateToPage('Adicionar colaborador');
               },
             ),
             ListTile(
-              title: const Text('Permissão de ADM'),
+              title: const Text('Permissão de ADM', style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Permissão de ADM',
-              selectedTileColor: Colors.grey[300],
+              selectedTileColor: Colors.grey[350],
               onTap: () {
                 _navigateToPage('Permissão de ADM');
               },
@@ -115,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.5,
-            height: MediaQuery.of(context).size.height * 0.45,
+            height: MediaQuery.of(context).size.height * 0.3,
             child: SingleChildScrollView(
               child: Form(
                 key: formKey,
@@ -129,30 +130,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           'Adicionar novo colaborador ao sistema:',
                           style: TextStyle(fontSize: 18),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          labelText: 'Nome do colaborador',
-                          labelStyle: TextStyle(color: Colors.black),
-                          floatingLabelStyle: TextStyle(color: Colors.black),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o nome do colaborador';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -216,6 +193,13 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ),
+    );
+  }
+  
+  backFunc(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const NewTankPage()),
     );
   }
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 
-class AddPage extends StatelessWidget {
-  const AddPage({super.key});
+class NewTankPage extends StatelessWidget {
+  const NewTankPage({super.key});
 
   void logoutFunc(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const AddPage()),
+      MaterialPageRoute(builder: (context) => const NewTankPage()),
     );
   }
 
@@ -17,8 +17,7 @@ class AddPage extends StatelessWidget {
     var screenSize = MediaQuery.of(context).size;
     var isMobile = screenSize.width < 600;
 
-    // Variable to track the current page
-    String currentPage = 'Nível de água'; // Change this based on the current page
+    String currentPage = 'Nível de água'; 
 
     return Scaffold(
       appBar: PreferredSize(
@@ -267,6 +266,7 @@ class AddPage extends StatelessWidget {
   Widget _buildMenuItem(BuildContext context, String title, String currentPage, bool isMobile) {
     return InkWell(
       onTap: () {
+        // Navigate to the corresponding page
       },
       child: Text(
         title,
