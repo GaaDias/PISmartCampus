@@ -9,6 +9,9 @@ class ModelA extends ChangeNotifier {
   final List<Map<String, dynamic>> _dadosHidrometer = [];
   List<Map<String, dynamic>> get dadosHidrometer => _dadosHidrometer;
 
+  final List<Map<String, dynamic>> _dadosArtesianWell = [];
+  List<Map<String, dynamic>> get dadosArtesianWell => _dadosArtesianWell;
+
   Future<Map<String, dynamic>> getHidrometer() async {
     const apiUrl = 'http://127.0.0.1:5000/api/data/Hidrometer';
 
@@ -108,6 +111,52 @@ class ModelA extends ChangeNotifier {
       }
     } catch (e) {
       // Handle errors during the HTTP request
+      print('Error: $e');
+      throw Exception('Failed to connect to the server. Error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getArtesianWell() async {
+    const apiUrl = 'http://127.0.0.1:5000/api/data/ArtesianWell';
+    final url = Uri.parse(apiUrl);
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+
+        if (responseData['ArtesianWell'] != null &&
+            responseData['ArtesianWell'] is Map) {
+          var artesianWellData = responseData['ArtesianWell'];
+          var dataPressure0 = artesianWellData['data_pressure_0'];
+          var dataPressure1 = artesianWellData['data_pressure_1'];
+
+          if (dataPressure0 != null &&
+              dataPressure0 is List &&
+              dataPressure1 != null &&
+              dataPressure1 is List) {
+            _dadosArtesianWell.clear(); // Clear previous data
+            _dadosArtesianWell.add({
+              'data_pressure_0': dataPressure0,
+              'data_pressure_1': dataPressure1,
+            });
+          } else {
+            print(
+                'Warning: data_pressure_0 or data_pressure_1 is null or not a list');
+          }
+
+          notifyListeners();
+        } else {
+          print('Warning: ArtesianWell is null or not a Map');
+        }
+
+        return responseData;
+      } else {
+        throw Exception(
+            'Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
       print('Error: $e');
       throw Exception('Failed to connect to the server. Error: $e');
     }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:projeto_2024/pages/all_charts_page.dart';
+import 'package:projeto_2024/pages/artesian_well_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/hidrometer_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +28,7 @@ class MainApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Material(
-        child: (LoginPage()),
+        child: (ArtesianWellPage()),
       ),
     );
   }

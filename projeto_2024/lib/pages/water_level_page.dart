@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/charts/linechart.dart';
 import 'package:projeto_2024/colors/colors.dart';
-import 'package:projeto_2024/components/barchart.dart';
-import 'package:projeto_2024/components/clock_widget.dart';
+import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
 
-class MainPage extends StatefulWidget {
-  const MainPage({Key? key});
+class WaterLevelPage extends StatefulWidget {
+  const WaterLevelPage({Key? key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<WaterLevelPage> createState() => _WaterLevelPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _WaterLevelPageState extends State<WaterLevelPage> {
   var tempoReload = 15;
   Timer? _timer;
   bool _isLoading = true; // Track loading state
+  int elapsedSeconds = 0;
 
   @override
   void initState() {
@@ -34,23 +34,19 @@ class _MainPageState extends State<MainPage> {
         _isLoading = false; // Set loading state to false on error as well
       });
     });
-    modelA.getHidrometer().then((_) {
-      setState(() {
-        _isLoading = false; // Set loading state to false when data is loaded
-      });
-    }).catchError((error) {
-      print("Error fetching data: $error");
-      setState(() {
-        _isLoading = false; // Set loading state to false on error as well
-      });
-    });
     _startTimer();
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(minutes: tempoReload), (timer) {
-      // Call the function to rebuild all children
-      rebuildAllChildren();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        elapsedSeconds++;
+        if (elapsedSeconds >= tempoReload * 60) {
+          elapsedSeconds = 0;
+          // Call the function to rebuild all children
+          rebuildAllChildren();
+        }
+      });
     });
   }
 
@@ -64,7 +60,7 @@ class _MainPageState extends State<MainPage> {
     print("Page Reloaded");
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const Material(child: MainPage()),
+        builder: (context) => const Material(child: WaterLevelPage()),
       ),
     );
   }
@@ -84,8 +80,8 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return _isLoading // Check loading state
-        ? Material(
-            child: const Scaffold(
+        ? const Material(
+            child: Scaffold(
               body: Center(
                 child: CircularProgressIndicator(), // Show a loading indicator
               ),
@@ -105,10 +101,7 @@ class _MainPageState extends State<MainPage> {
                         "Caixa: ${1 + currentIndex}",
                         style: const TextStyle(),
                       ),
-                      Center(
-                          child: ClockWidget(
-                        tempoReload: tempoReload,
-                      )),
+                      TopNav(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -161,7 +154,7 @@ class _MainPageState extends State<MainPage> {
                         ),
                       ),
                       ListTile(
-                        title: Text("Geral"),
+                        title: const Text("Geral"),
                         onTap: () {
                           _goToOnTap();
                         },
@@ -182,25 +175,16 @@ class _MainPageState extends State<MainPage> {
                     ],
                   ),
                 ),
-                body: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                body: Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            MyLineChart(index: currentIndex),
-                          ],
+                    Expanded(
+                      child: Center(
+                        child: MyLineChart(
+                          index: currentIndex,
+                          height: 520,
+                          width: 900,
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            MyBarChart(index: currentIndex),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
