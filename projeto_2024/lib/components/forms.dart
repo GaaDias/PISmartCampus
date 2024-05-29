@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
-import 'package:projeto_2024/pages/main_page.dart';
+import 'package:projeto_2024/pages/hidrometer_page.dart';
 
 class Forms extends StatefulWidget {
   const Forms({super.key});
@@ -19,22 +19,18 @@ class _FormsState extends State<Forms> {
     return Container(
       color: Colors.white,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text(
-            "Seja Bem Vindo",
+            "Por favor, faça login",
             style: TextStyle(
-              color: Colors.black,
+              color: Color.fromARGB(255, 84, 84, 84),
               fontWeight: FontWeight.bold,
               fontSize: 32,
-              shadows: <Shadow>[
-                Shadow(
-                  color: Color.fromARGB(135, 0, 0, 0),
-                  blurRadius: 2,
-                  offset: Offset(2, 4),
-                ),
-              ],
             ),
+          ),
+          const SizedBox(
+            height: 70,
           ),
           GestureDetector(
             onTap: entrar,
@@ -73,7 +69,7 @@ class _FormsState extends State<Forms> {
             ),
           ),
           const SizedBox(
-            height: 10,
+            height: 20,
           ),
         ],
       ),
@@ -92,7 +88,7 @@ class _FormsState extends State<Forms> {
       // Navigate to the main page on successful login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const MainPage(),
+          builder: (context) => const HidrometerPage(),
         ),
       );
     } catch (e) {

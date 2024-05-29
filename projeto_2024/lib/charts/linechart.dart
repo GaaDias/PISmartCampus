@@ -5,10 +5,15 @@ import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 
 class MyLineChart extends StatefulWidget {
+  final double height;
+  final double width;
+
   final int index;
   const MyLineChart({
     super.key,
     required this.index,
+    required this.height,
+    required this.width,
   });
 
   @override
@@ -106,8 +111,8 @@ class _MyLineChartState extends State<MyLineChart> {
     final timestamps = flSpotAndTimestamps.timestamps;
 
     return Container(
-      height: 420,
-      width: 700,
+      height: widget.height,
+      width: widget.width,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -124,11 +129,11 @@ class _MyLineChartState extends State<MyLineChart> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
+          const Center(
             child: Text(
-              modelA.dadosWaterTank[widget.index]['nome'] as String,
+              'Vazão de água',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -185,7 +190,7 @@ class _MyLineChartState extends State<MyLineChart> {
                 ),
                 gridData: const FlGridData(show: true, drawVerticalLine: false),
                 titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
+                  leftTitles: const AxisTitles(
                     sideTitles: SideTitles(
                         showTitles: true, interval: 1000, reservedSize: 32),
                   ),
@@ -215,9 +220,9 @@ class _MyLineChartState extends State<MyLineChart> {
                     ),
                   ),
                   topTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   rightTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
               ),
             ),

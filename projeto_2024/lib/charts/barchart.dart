@@ -140,8 +140,8 @@ class _MyBarChartState extends State<MyBarChart> {
     final timestamps = barChartDataAndTimestamps.timestamps;
 
     return Container(
-      height: 420,
-      width: 700,
+      height: 520,
+      width: 900,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -157,11 +157,11 @@ class _MyBarChartState extends State<MyBarChart> {
       padding: const EdgeInsets.only(left: 10, bottom: 10, right: 40, top: 20),
       child: Column(
         children: [
-          Center(
+          const Center(
             child: Text(
-              modelA.dadosHidrometer[widget.index]['nome'] as String,
+              'Litros acumulados',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
