@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/components/toppages.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
+import 'package:projeto_2024/pages/artesian_well_page.dart';
+import 'package:projeto_2024/pages/hidrometer_page.dart';
 import 'package:projeto_2024/pages/water_level_page.dart';
 
 class TopNav extends StatelessWidget {
@@ -16,7 +18,7 @@ class TopNav extends StatelessWidget {
         children: [
           TopPages(
             texto: 'Nivel de agua',
-            rota: WaterLevelPage(),
+            rota: HidrometerPage(),
           ),
           Padding(
             padding: EdgeInsets.all(8.0),
@@ -32,7 +34,7 @@ class TopNav extends StatelessWidget {
           ),
           TopPages(
             texto: 'Pressão poço',
-            rota: AllChartsPage(),
+            rota: ArtesianWellPage(),
           ),
           Padding(
             padding: EdgeInsets.all(8.0),
