@@ -1,75 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/rendering.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 
-class MyLineChart extends StatefulWidget {
-  final double height;
-  final double width;
-
+class MyBarChart extends StatefulWidget {
   final int index;
-  const MyLineChart({
-    super.key,
-    required this.index,
-    required this.height,
-    required this.width,
-  });
+  const MyBarChart({Key? key, required this.index}) : super(key: key);
 
   @override
-  State<MyLineChart> createState() => _MyLineChartState();
+  State<MyBarChart> createState() => _MyBarChartState();
 }
 
-class FlSpotAndTimestamps {
-  List<FlSpot> spots;
+class BarChartDataAndTimestamps {
+  List<BarChartGroupData> barGroups;
   List<String> timestamps;
 
-  FlSpotAndTimestamps(this.spots, this.timestamps);
+  BarChartDataAndTimestamps(this.barGroups, this.timestamps);
 }
 
-FlSpotAndTimestamps generateFlSpots(ModelA modelA, int index) {
-  List<FlSpot> spots = [];
+BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
+  List<BarChartGroupData> barGroups = [];
   List<String> timestamps = [];
 
-  if (modelA.dadosWaterTank.isNotEmpty) {
-    List<dynamic>? dataCounter =
-        modelA.dadosWaterTank[index]['data_distance'] as List<dynamic>?;
+  if (modelA.dadosHidrometer.isNotEmpty) {
+    List<dynamic>? dataHidro =
+        modelA.dadosHidrometer[index]['data_counter'] as List<dynamic>?;
     List<dynamic>? timestampsData =
-        modelA.dadosWaterTank[index]['timestamp'] as List<dynamic>?;
+        modelA.dadosHidrometer[index]['timestamp'] as List<dynamic>?;
 
-    if (dataCounter != null && timestampsData != null) {
-      int length = dataCounter.length;
+    if (dataHidro != null && timestampsData != null) {
+      int length = dataHidro.length;
       int start = length > 15 ? length - 15 : 0;
 
       for (int i = start; i < length; i++) {
-        spots.add(FlSpot(i - start.toDouble(), dataCounter[i].toDouble()));
+        barGroups.add(
+          BarChartGroupData(
+            x: i - start, // adjust x to start from 0
+            barRods: [
+              BarChartRodData(
+                toY: dataHidro[i].toDouble(),
+                color: azulPadrao,
+                width: 15,
+              )
+            ],
+          ),
+        );
         String timestamp = timestampsData[i].toString();
         timestamps.add(
             timestamp.substring(timestamp.length - 8)); // get last 8 characters
       }
     } else {
       for (int i = 0; i < 15; i++) {
-        spots.add(FlSpot(i.toDouble(), 0.0));
+        barGroups.add(
+          BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: 0.0,
+                color: Colors.blue,
+                width: 15,
+              )
+            ],
+          ),
+        );
         timestamps.add('');
       }
     }
   } else {
     for (int i = 0; i < 15; i++) {
-      spots.add(FlSpot(i.toDouble(), 0.0));
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: 0.0,
+              color: Colors.blue,
+              width: 15,
+            )
+          ],
+        ),
+      );
       timestamps.add('');
     }
   }
 
-  return FlSpotAndTimestamps(spots, timestamps);
+  return BarChartDataAndTimestamps(barGroups, timestamps);
 }
 
-class _MyLineChartState extends State<MyLineChart> {
+class _MyBarChartState extends State<MyBarChart> {
   ModelA modelA = ModelA();
+
+  void reloadData() {
+    // Call setState to trigger a rebuild
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
-    modelA.getWaterTank().then((_) {
+    modelA.getHidrometer().then((_) {
       setState(() {}); // Trigger rebuild
     }).catchError((error) {
       print("Error fetching data: $error");
@@ -78,7 +107,7 @@ class _MyLineChartState extends State<MyLineChart> {
 
   @override
   Widget build(BuildContext context) {
-    return modelA.dadosWaterTank.isNotEmpty
+    return modelA.dadosHidrometer.isNotEmpty
         ? buildChart()
         : buildLoadingIndicator();
   }
@@ -90,29 +119,29 @@ class _MyLineChartState extends State<MyLineChart> {
   }
 
   Widget buildChart() {
-    List<dynamic>? dataCounter =
-        modelA.dadosWaterTank[widget.index]['data_distance'] as List<dynamic>?;
+    List<dynamic>? dataHidro =
+        modelA.dadosHidrometer[widget.index]['data_counter'] as List<dynamic>?;
 
     double maxY = 1.0;
-    if (dataCounter != null && dataCounter.isNotEmpty) {
-      int length = dataCounter.length > 15 ? 15 : dataCounter.length;
-      maxY = (dataCounter
-                      .sublist(0, length)
+    if (dataHidro != null && dataHidro.isNotEmpty) {
+      int length = dataHidro.length > 15 ? 15 : dataHidro.length;
+      List<dynamic> lastValues = dataHidro.sublist(dataHidro.length - length);
+      maxY = (lastValues
                       .reduce(
                           (value, element) => value > element ? value : element)
                       .toDouble() /
-                  1000)
+                  100)
               .ceil() *
-          1000;
+          100;
     }
 
-    final flSpotAndTimestamps = generateFlSpots(modelA, widget.index);
-    final spots = flSpotAndTimestamps.spots;
-    final timestamps = flSpotAndTimestamps.timestamps;
+    final barChartDataAndTimestamps = generateBarGroups(modelA, widget.index);
+    final barGroups = barChartDataAndTimestamps.barGroups;
+    final timestamps = barChartDataAndTimestamps.timestamps;
 
     return Container(
-      height: widget.height,
-      width: widget.width,
+      height: 520,
+      width: 900,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -127,11 +156,10 @@ class _MyLineChartState extends State<MyLineChart> {
       ),
       padding: const EdgeInsets.only(left: 10, bottom: 10, right: 40, top: 20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Center(
             child: Text(
-              'Vazão de água',
+              'Litros acumulados',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -143,41 +171,11 @@ class _MyLineChartState extends State<MyLineChart> {
             height: 10,
           ),
           Expanded(
-            child: LineChart(
-              LineChartData(
-                minX: 0,
+            child: BarChart(
+              BarChartData(
                 minY: 0,
-                maxX: 15,
                 maxY: maxY,
-                lineBarsData: [
-                  LineChartBarData(
-                    color: azulPadrao,
-                    spots: spots,
-                    isCurved: false,
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: azulPadraoSemiInv,
-                    ),
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        if (spot.y < 1000) {
-                          return FlDotCirclePainter(
-                            radius: 4,
-                            color: Colors.red,
-                            strokeWidth: 0,
-                          );
-                        } else {
-                          return FlDotCirclePainter(
-                            radius: 1,
-                            color: azulPadrao,
-                            strokeWidth: 0,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
+                barGroups: barGroups,
                 borderData: FlBorderData(
                   border: const Border(
                     bottom: BorderSide(
@@ -188,12 +186,11 @@ class _MyLineChartState extends State<MyLineChart> {
                     ),
                   ),
                 ),
-                gridData: const FlGridData(show: true, drawVerticalLine: false),
+                gridData: const FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                ),
                 titlesData: FlTitlesData(
-                  leftTitles: const AxisTitles(
-                    sideTitles: SideTitles(
-                        showTitles: true, interval: 1000, reservedSize: 32),
-                  ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -220,9 +217,9 @@ class _MyLineChartState extends State<MyLineChart> {
                     ),
                   ),
                   topTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   rightTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
               ),
             ),
