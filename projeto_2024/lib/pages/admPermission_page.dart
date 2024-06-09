@@ -127,7 +127,7 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                       padding: EdgeInsets.symmetric(vertical: 20.0),
                       child: Center(
                         child: Text(
-                          'Adicionar novo colaborador ao sistema:',
+                          'Conceder permissão de administrador a outro colaborador:',
                           style: TextStyle(fontSize: 18),
                         ),
                       ),

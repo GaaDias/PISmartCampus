@@ -115,7 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.5,
-            height: MediaQuery.of(context).size.height * 0.45,
+            height: MediaQuery.of(context).size.height * 0.3,
             child: SingleChildScrollView(
               child: Form(
                 key: formKey,
@@ -129,30 +129,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           'Adicionar novo colaborador ao sistema:',
                           style: TextStyle(fontSize: 18),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          labelText: 'Nome do colaborador',
-                          labelStyle: TextStyle(color: Colors.black),
-                          floatingLabelStyle: TextStyle(color: Colors.black),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o nome do colaborador';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                     const SizedBox(height: 30),
