@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/pages/admPermission_page.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,6 +13,16 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   String currentPage = 'Adicionar colaborador';
+  final formKey = GlobalKey<FormState>(); 
+  final TextEditingController _emailController = TextEditingController();
+
+  final String apiUrl = 'http://127.0.0.1:8000/cadastra_usuario/';
+
+  @override
+  void dispose() {
+    _emailController.dispose(); 
+    super.dispose();
+  }
 
   void logoutFunc(BuildContext context) {
     Navigator.pushReplacement(
@@ -38,6 +50,101 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     } else {
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> cadastrarUsuario(BuildContext context) async {
+    String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Erro"),
+          content: const Text("Por favor, insira um e-mail válido"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return; 
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Sucesso"),
+              content: const Text("Usuário cadastrado com sucesso!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Aviso"),
+              content: const Text("Usuário já cadastrado!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }else {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Erro"),
+              content: const Text("Falha ao cadastrar o usuário"), // More informative error message
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text("Erro"),
+            content: const Text("Ocorreu um erro ao enviar o e-mail."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -135,6 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     SizedBox(
                       width: double.infinity,
                       child: TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -147,15 +255,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           labelStyle: TextStyle(color: Colors.black),
                           floatingLabelStyle: TextStyle(color: Colors.black),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o e-mail do colaborador';
-                          }
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                            return 'Por favor, insira um e-mail válido';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -163,10 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: SizedBox(
                         width: 180,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (formKey.currentState?.validate() ?? false) {
-                            }
-                          },
+                          onPressed: () => cadastrarUsuario(context),
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.resolveWith<Color>(
                               (Set<MaterialState> states) {

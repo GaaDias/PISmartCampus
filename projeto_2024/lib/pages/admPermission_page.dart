@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
+import 'package:http/http.dart' as http;
 
 class AdmPermissionPage extends StatefulWidget {
   const AdmPermissionPage({super.key});
@@ -12,6 +14,25 @@ class AdmPermissionPage extends StatefulWidget {
 
 class _AdmPermissionPageState extends State<AdmPermissionPage> {
   String currentPage = 'Permissão de ADM';
+  final formKey = GlobalKey<FormState>(); 
+  final TextEditingController _emailController = TextEditingController();
+  bool isLoading = true;
+  bool isAdmin = false;
+
+  final String permissaoAdmUrl = 'http://127.0.0.1:8000/altera_adm/';
+  final String checkAdminUrl = 'http://127.0.0.1:8000/verifica_adm/';
+
+  @override
+  void initState() {
+    super.initState();
+    checkAdminPermission(); // Check permission on page load
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose(); 
+    super.dispose();
+  }
 
   void logoutFunc(BuildContext context) {
     Navigator.pushReplacement(
@@ -42,10 +63,195 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
     }
   }
 
+  Future<void> checkAdminPermission() async {
+    try {
+      // Assuming you have a way to get the logged-in user's email
+      String userEmail = _emailController.text.trim(); 
+
+      final response = await http.post(
+        Uri.parse(checkAdminUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': userEmail}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        setState(() {
+          isAdmin = responseData['is_admin']; // Update the admin status
+        });
+      } else if (response.statusCode == 403) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("403 FORBIDDEN"),
+              content: const Text("Você não possui autorização para acessar essa página"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Erro"),
+              content: const Text("Usuário não cadastrado"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      // Handle network errors
+    } finally {
+      setState(() {
+        isLoading = false; // Finished loading, hide loading indicator
+      });
+    }
+  }
+
+  Future<void> permissaoADM(BuildContext context) async {
+    String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Erro"),
+          content: const Text("Por favor, insira um e-mail válido"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return; 
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(permissaoAdmUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Sucesso"),
+              content: const Text("Permissão concedida!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Aviso"),
+              content: const Text("Usuário já possui permissão!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }else if (response.statusCode == 404) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Aviso"),
+              content: const Text("Usuário não está cadastrado!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+      else {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Erro"),
+              content: const Text("Falha ao conceder permissão"), // More informative error message
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text("Erro"),
+            content: const Text("Ocorreu um erro ao enviar o e-mail."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     var screenSize = MediaQuery.of(context).size;
+
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator()); // Show loading indicator
+    }
+
+    if (!isAdmin) {
+      // Redirect if not admin
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NewTankPage()),
+        );
+      });
+      return Container(); // Return an empty container while redirecting
+    }
 
     return Scaffold(
       appBar: PreferredSize(
@@ -136,6 +342,7 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                     SizedBox(
                       width: double.infinity,
                       child: TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -148,15 +355,6 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                           labelStyle: TextStyle(color: Colors.black),
                           floatingLabelStyle: TextStyle(color: Colors.black),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o e-mail do colaborador';
-                          }
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                            return 'Por favor, insira um e-mail válido';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -164,10 +362,7 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                       child: SizedBox(
                         width: 180,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (formKey.currentState?.validate() ?? false) {
-                            }
-                          },
+                          onPressed: () => permissaoADM(context),
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.resolveWith<Color>(
                               (Set<MaterialState> states) {
