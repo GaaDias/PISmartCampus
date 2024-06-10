@@ -1,72 +1,84 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/login_page.dart';
 
-class NewTankPage extends StatelessWidget {
+class NewTankPage extends StatefulWidget {
   const NewTankPage({super.key});
 
-  void logoutFunc(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const NewTankPage()),
-    );
+  @override
+  State<NewTankPage> createState() => _NewTankPageState();
+}
+
+class _NewTankPageState extends State<NewTankPage> {
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    Color corBotao = Colors.transparent;
+
     final formKey = GlobalKey<FormState>();
     var screenSize = MediaQuery.of(context).size;
     var isMobile = screenSize.width < 600;
 
-    String currentPage = 'Nível de água'; 
+    String currentPage = 'Nível de água';
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size(screenSize.width, 60),
-        child: Container(
-          color: azulPadrao,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
+      appBar: AppBar(
+        backgroundColor: azulPadrao,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const TopNav(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                ),
-                Expanded(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: isMobile ? 8.0 : screenSize.width / 30,
-                    runSpacing: isMobile ? 8.0 : 0.0,
-                    children: [
-                      _buildMenuItem(context, 'Nível de água', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Vazão de água', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Pressão do poço', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Bomba do poço', currentPage, isMobile),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: screenSize.width / 50,
-                ),
-                InkWell(
-                        onTap: () {},
-                        child: const Text(
-                          'Perfil',
-                          style: TextStyle(color: Colors.black, fontSize: 19),
-                        ),
+                MouseRegion(
+                  cursor: MaterialStateMouseCursor.clickable,
+                  onEnter: (_) => setState(() {
+                    corBotao = const Color.fromARGB(76, 158, 158, 158);
+                  }),
+                  onExit: (_) => setState(() {
+                    corBotao = Colors.transparent;
+                  }),
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: corBotao,
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: const Text("Perfil"),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 IconButton(
-                  onPressed: () => logoutFunc(context),
-                  icon: const Icon(Icons.logout),
+                  onPressed: logoutFunc,
+                  icon: const Icon(Icons.logout_outlined),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -159,7 +171,8 @@ class NewTankPage extends StatelessWidget {
                               ),
                               labelText: 'Nível Mínimo',
                               labelStyle: TextStyle(color: Colors.black),
-                              floatingLabelStyle: TextStyle(color: Colors.black),
+                              floatingLabelStyle:
+                                  TextStyle(color: Colors.black),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
@@ -186,7 +199,8 @@ class NewTankPage extends StatelessWidget {
                               ),
                               labelText: 'Nível Máximo',
                               labelStyle: TextStyle(color: Colors.black),
-                              floatingLabelStyle: TextStyle(color: Colors.black),
+                              floatingLabelStyle:
+                                  TextStyle(color: Colors.black),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
@@ -231,8 +245,7 @@ class NewTankPage extends StatelessWidget {
                         width: 180,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (formKey.currentState?.validate() ?? false) {
-                            }
+                            if (formKey.currentState?.validate() ?? false) {}
                           },
                           style: ButtonStyle(
                             backgroundColor:
@@ -263,7 +276,8 @@ class NewTankPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, String title, String currentPage, bool isMobile) {
+  Widget _buildMenuItem(
+      BuildContext context, String title, String currentPage, bool isMobile) {
     return InkWell(
       onTap: () {
         // Navigate to the corresponding page
@@ -273,7 +287,8 @@ class NewTankPage extends StatelessWidget {
         style: TextStyle(
           color: currentPage == title ? Colors.black87 : Colors.black,
           fontSize: isMobile ? 14 : 20,
-          fontWeight: currentPage == title ? FontWeight.bold : FontWeight.normal,
+          fontWeight:
+              currentPage == title ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );
