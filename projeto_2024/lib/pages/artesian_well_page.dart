@@ -1,11 +1,12 @@
 import 'dart:async';
-
+import 'package:at_viz/at_gauges/at_gauges.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
-import 'package:projeto_2024/charts/velocimeterpainter.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
+import 'package:projeto_2024/pages/login_page.dart';
 
 class ArtesianWellPage extends StatefulWidget {
   const ArtesianWellPage({super.key});
@@ -106,7 +107,7 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
                         ),
                         const SizedBox(width: 10),
                         IconButton(
-                          onPressed: () {},
+                          onPressed: logoutFunc,
                           icon: const Icon(Icons.logout_outlined),
                         ),
                       ],
@@ -114,37 +115,98 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
                   ],
                 ),
               ),
-              drawer: Drawer(
-                child: Column(
+              body: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    SizedBox(
-                      height: 110,
-                      child: DrawerHeader(
-                        decoration: BoxDecoration(
-                          color: azulPadrao,
-                        ),
-                        child: Center(
-                          child: Image.asset('assets/images/LogoApp.png'),
-                        ),
+                    //Entrada
+                    Container(
+                      height: 500,
+                      width: 500,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: const Offset(
+                                0, 3), // changes position of shadow
+                          ),
+                        ],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.only(top: 50),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Pressão de entrada",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          ScaleRadialGauge(
+                            needleColor: azulPadrao,
+                            pointerColor: Colors.green,
+                            size: 400,
+                            actualValue: getLastDataPressure0(modelA),
+                            maxValue: 1000,
+                            unit: TextSpan(text: "N/m²"),
+                          ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: 2,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(nome(index)),
-                            onTap: () {},
-                          );
-                        },
+                    //Saida
+                    Container(
+                      height: 500,
+                      width: 500,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: const Offset(
+                                0, 3), // changes position of shadow
+                          ),
+                        ],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.only(top: 50),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Pressão de saída",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          ScaleRadialGauge(
+                            needleColor: azulPadrao,
+                            pointerColor: Colors.red,
+                            size: 400,
+                            actualValue: getLastDataPressure1(modelA),
+                            maxValue: 5000,
+                            unit: TextSpan(text: "N/m²"),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              body: Center(
-                child: Velocimeter(
-                    speed: getLastDataPressure0(modelA), maxSpeed: 1000),
               ),
             ),
           );
@@ -172,19 +234,34 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
       return 0.0; // Return a default value if no data is available
     }
   }
-}
 
-class Velocimeter extends StatelessWidget {
-  final double speed;
-  final double maxSpeed;
+  double getLastDataPressure1(ModelA modelA) {
+    if (modelA.dadosArtesianWell.isNotEmpty &&
+        modelA.dadosArtesianWell[0]['data_pressure_1'] != null &&
+        (modelA.dadosArtesianWell[0]['data_pressure_1'] as List).isNotEmpty) {
+      List<dynamic> dataCounter =
+          modelA.dadosArtesianWell[0]['data_pressure_1'] as List<dynamic>;
+      return (dataCounter.last as num).toDouble();
+    } else {
+      return 0.0; // Return a default value if no data is available
+    }
+  }
 
-  const Velocimeter({required this.speed, required this.maxSpeed});
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
 
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(400, 400),
-      painter: VelocimeterPainter(speed: speed, maxSpeed: maxSpeed),
-    );
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
   }
 }

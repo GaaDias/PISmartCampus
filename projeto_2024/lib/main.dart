@@ -7,6 +7,8 @@ import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/hidrometer_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
 import 'package:projeto_2024/pages/maintenance_page.dart';
+import 'package:projeto_2024/pages/newWatertank_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +34,7 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Material(
         child: (AdmPermissionPage()),
+
       ),
     );
   }
