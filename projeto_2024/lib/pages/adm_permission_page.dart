@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/pages/error_page.dart';
+import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
 import 'package:http/http.dart' as http;
 
 class AdmPermissionPage extends StatefulWidget {
-  const AdmPermissionPage({super.key});
+  const AdmPermissionPage({super.key, required this.email});
+  final String? email;
 
   @override
   _AdmPermissionPageState createState() => _AdmPermissionPageState();
@@ -14,7 +18,7 @@ class AdmPermissionPage extends StatefulWidget {
 
 class _AdmPermissionPageState extends State<AdmPermissionPage> {
   String currentPage = 'Permissão de ADM';
-  final formKey = GlobalKey<FormState>(); 
+  final formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   bool isLoading = true;
   bool isAdmin = false;
@@ -30,15 +34,8 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
 
   @override
   void dispose() {
-    _emailController.dispose(); 
+    _emailController.dispose();
     super.dispose();
-  }
-
-  void logoutFunc(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AdmPermissionPage()),
-    );
   }
 
   void _navigateToPage(String page) {
@@ -51,7 +48,9 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
         MaterialPageRoute(
           builder: (context) {
             if (page == 'Permissão de ADM') {
-              return const AdmPermissionPage();
+              return AdmPermissionPage(
+                email: widget.email,
+              );
             } else {
               return const RegisterPage();
             }
@@ -64,52 +63,41 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
   }
 
   Future<void> checkAdminPermission() async {
+    print(widget.email);
     try {
-      // Assuming you have a way to get the logged-in user's email
-      String userEmail = _emailController.text.trim(); 
-
+      String userEmail = widget.email?.trim() ?? '';
       final response = await http.post(
         Uri.parse(checkAdminUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': userEmail}),
       );
+      final responseData = json.decode(response.body);
 
+      print(isAdmin);
+      print(responseData['is_admin']);
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
         setState(() {
-          isAdmin = responseData['is_admin']; // Update the admin status
+          isAdmin = true; // Update the admin status
         });
       } else if (response.statusCode == 403) {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("403 FORBIDDEN"),
-              content: const Text("Você não possui autorização para acessar essa página"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ErroPage(
+                    mensagemErro: "403 FORBIDDEN",
+                    codigoErro:
+                        "Você não possui autorização para acessar essa página",
+                  )),
         );
       } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("Erro"),
-              content: const Text("Usuário não cadastrado"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+        popUps(
+          context,
+          "Erro",
+          "Usuário não cadastrado",
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NewTankPage()),
         );
       }
     } catch (error) {
@@ -125,20 +113,8 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
     String email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Erro"),
-          content: const Text("Por favor, insira um e-mail válido"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
-      return; 
+      popUps(context, "text", 'Line');
+      return;
     }
 
     try {
@@ -149,100 +125,68 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
       );
 
       if (response.statusCode == 200) {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("Sucesso"),
-              content: const Text("Permissão concedida!"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+        popUps(
+          context,
+          "Sucesso",
+          "Permissão concedida!",
         );
       } else if (response.statusCode == 201) {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("Aviso"),
-              content: const Text("Usuário já possui permissão!"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+        popUps(
+          context,
+          "Aviso",
+          "Usuário já possui permissão!",
         );
-      }else if (response.statusCode == 404) {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("Aviso"),
-              content: const Text("Usuário não está cadastrado!"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+      } else if (response.statusCode == 404) {
+        popUps(
+          context,
+          "Aviso",
+          "Usuário não está cadastrado!",
         );
-      }
-      else {
-        showDialog(
-          context: context,
-          builder: (BuildContext dialogContext) {
-            return AlertDialog(
-              title: const Text("Erro"),
-              content: const Text("Falha ao conceder permissão"), // More informative error message
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            );
-          },
+      } else {
+        popUps(
+          context,
+          "Erro",
+          "Falha ao conceder permissão",
         );
       }
     } catch (error) {
-      showDialog(
-        context: context,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: const Text("Erro"),
-            content: const Text("Ocorreu um erro ao enviar o e-mail."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text("OK"),
-              ),
-            ],
-          );
-        },
+      popUps(
+        context,
+        "Erro",
+        "Ocorreu um erro ao enviar o e-mail.",
       );
     }
   }
 
+  Future<dynamic> popUps(BuildContext context, String title, String texto) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(texto),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const NewTankPage()),
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
     var screenSize = MediaQuery.of(context).size;
 
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator()); // Show loading indicator
+      return const Center(
+          child: CircularProgressIndicator()); // Show loading indicator
     }
 
-    if (!isAdmin) {
+    if (isAdmin = false) {
       // Redirect if not admin
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
@@ -275,7 +219,7 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                   width: screenSize.width / 50,
                 ),
                 IconButton(
-                  onPressed: () => logoutFunc(context),
+                  onPressed: () => logoutFunc(),
                   icon: const Icon(Icons.logout),
                 ),
               ],
@@ -294,7 +238,8 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
               ),
             ),
             ListTile(
-              title: const Text('Adicionar colaborador', style: TextStyle(color: Colors.black)),
+              title: const Text('Adicionar colaborador',
+                  style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Adicionar colaborador',
               selectedTileColor: Colors.grey[300],
@@ -303,7 +248,8 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
               },
             ),
             ListTile(
-              title: const Text('Permissão de ADM', style: TextStyle(color: Colors.black)),
+              title: const Text('Permissão de ADM',
+                  style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Permissão de ADM',
               selectedTileColor: Colors.grey[350],
@@ -364,7 +310,8 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                         child: ElevatedButton(
                           onPressed: () => permissaoADM(context),
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                            backgroundColor:
+                                MaterialStateProperty.resolveWith<Color>(
                               (Set<MaterialState> states) {
                                 if (states.contains(MaterialState.hovered)) {
                                   return Colors.grey[500]!;
@@ -390,7 +337,25 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
       ),
     );
   }
-  
+
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
+  }
+
   backFunc(BuildContext context) {
     Navigator.pushReplacement(
       context,

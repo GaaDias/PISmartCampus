@@ -161,4 +161,54 @@ class ModelA extends ChangeNotifier {
       throw Exception('Failed to connect to the server. Error: $e');
     }
   }
+
+  Future<void> enviaAlerta(String nome, String timestamp, String litros) async {
+    // The URL to which you want to send the POST request
+    final url = Uri.parse('http://127.0.0.1:8000/envia_alerta/');
+
+    // The body of the POST request
+    final Map<String, dynamic> body = {
+      'nome': nome,
+      'timestamp': timestamp,
+      'litros': litros
+    };
+
+    // Convert the body to JSON
+    final String jsonBody = json.encode(body);
+
+    try {
+      // Make the POST request
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json', // Set the content type to JSON
+        },
+        body: jsonBody,
+      );
+
+      // Check the response status
+      if (response.statusCode == 200) {
+        // The request was successful
+        final responseData = json.decode(response.body);
+        print('Response data: $responseData');
+      } else {
+        // The request failed
+        print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle any errors that occurred during the request
+      print('An error occurred: $e');
+    }
+  }
+}
+
+class EmailProvider with ChangeNotifier {
+  String? _email;
+
+  String? get email => _email;
+
+  void setEmail(String email) {
+    _email = email;
+    notifyListeners();
+  }
 }

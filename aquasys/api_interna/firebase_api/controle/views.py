@@ -9,7 +9,7 @@ import re
 from django.shortcuts import render
 from firebase_api.firebase_config import db
 from django.core.mail import EmailMultiAlternatives
-
+import requests
 @api_view(['POST'])
 def cadastra_usuario(request):
     try:
@@ -53,7 +53,7 @@ def verifica_cadastro(request):
         if email_cadastrado:
             return JsonResponse({'mensagem': 'Este email tem acesso'}, status=200)
         else:
-            return JsonResponse({'mensagem': 'Este email não está cadastrado'}, status=403)
+            return JsonResponse({'mensagem': 'Este email não está cadastrado'}, status=400)
 
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao cadastrar usuário: {str(e)}', 'email_cadastrado': False}, status=500)
@@ -74,9 +74,12 @@ def verifica_adm(request):
         if user_data:
             user_dict = user_data.to_dict()
             is_admin = user_dict.get('Administrador', False)
-            return JsonResponse({'mensagem': 'Este email tem acesso', 'email_cadastrado': True, 'administrador': is_admin}, status=200)
+            if is_admin:
+                return JsonResponse({'mensagem': 'Este email tem acesso'}, status=200)
+            else:
+                return JsonResponse({'mensagem': 'Este email não tem permissão'}, status=403)
         else:
-            return JsonResponse({'mensagem': 'Este email não está cadastrado', 'email_cadastrado': False, 'administrador': False}, status=200)
+            return JsonResponse({'mensagem': 'Este email não está cadastrado'}, status=500)
 
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao verificar usuário: {str(e)}', 'email_cadastrado': False, 'administrador': False}, status=500)
@@ -88,23 +91,57 @@ def altera_adm(request):
         email = info.get('email') 
         if not email:
             return JsonResponse({'mensagem': 'Todos os campos são obrigatórios'}, status=400)
-
+        
         doc_ref = db.collection('users')
         query = doc_ref.where('Email', '==', email).get()
-
+        
         for doc in query:
             user_data = doc.to_dict()
             if user_data.get('Administrador', False):
                 return JsonResponse({'mensagem': 'Usuário já é administrador'}, status=201)
-
+            
             doc_ref.document(doc.id).update({'Administrador': True})
             return JsonResponse({'mensagem': 'Usuário atualizado com sucesso'}, status=200)
-
+        
         return JsonResponse({'mensagem': 'Usuário não encontrado'}, status=404)
+    
+    except Exception as e:
+        return JsonResponse({'mensagem': f'Erro ao atualizar usuário: {str(e)}'}, status=500)
+    
+@api_view(['POST'])
+def envia_alerta(request):
+    try:
+        info = request.data
+        Nome = info.get('nome')
+        Timestamp = info.get('timestamp')
+        Litros = info.get('litros')
+        
+        token = '6927242072:AAFn5eUJLbslR8FFhqL21oxripeoKQ4tZUw'  
+        chat_id = '-4280806828'
+        message = Nome + ' ' + Timestamp + ' ' + Litros
+        print(message)
+        # Enviar mensagem
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        data = {"chat_id": chat_id, "text": message}
+        response = requests.post(url, data=data)
+        with open(r'D:\\aquasys\\api_interna\\firebase_api\\controle\\mensagens_enviadas.txt', 'r') as f:
+            mensagens_enviadas = f.readlines()
+            if message+',' in mensagens_enviadas:
+                print(f"Mensagem '{message}' já foi enviada. Pulando envio.")
+                return print('pulando')
+        if response.status_code == 200:
+            print("Mensagem enviada com sucesso!")
+            # Salvar mensagem no arquivo
+            with open(r'D:\\aquasys\\api_interna\\firebase_api\\controle\\mensagens_enviadas.txt', 'a') as f:
+                f.write(f"{message}")
+            
+            return JsonResponse({'mensagem': 'Alerta enviado com sucesso'}, status=200)
+        else:
+            return JsonResponse({'mensagem': f'Erro ao enviar alerta: {str(e)}'}, status=404)
 
     except Exception as e:
-        return JsonResponse({'mensagem': f'Erro ao atualizar usuário: {str(e)}'}, status=500)  
-
+        return JsonResponse({'mensagem': f'Erro ao enviar alerta: {str(e)}'}, status=500)
+        
 @api_view(['POST'])
 def envia_email(request):
     info = request.data

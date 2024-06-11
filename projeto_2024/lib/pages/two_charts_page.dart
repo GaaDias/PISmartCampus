@@ -5,7 +5,7 @@ import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/charts/linechart.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/charts/barchart.dart';
-import 'package:projeto_2024/components/toppages.dart';
+import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
 
@@ -108,36 +108,7 @@ class _TwoChartsPageState extends State<TwoChartsPage> {
                       const Expanded(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            TopPages(
-                              texto: 'Nivel de agua',
-                              rota: AllChartsPage(),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("|"),
-                            ),
-                            TopPages(
-                              texto: 'Vazão de agua',
-                              rota: AllChartsPage(),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("|"),
-                            ),
-                            TopPages(
-                              texto: 'Pressão poço',
-                              rota: AllChartsPage(),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("|"),
-                            ),
-                            TopPages(
-                              texto: 'Bomba poço',
-                              rota: AllChartsPage(),
-                            ),
-                          ],
+                          children: [TopNav()],
                         ),
                       ),
                       Row(

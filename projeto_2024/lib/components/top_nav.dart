@@ -12,6 +12,7 @@ class TopNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return const Expanded(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -41,8 +42,8 @@ class TopNav extends StatelessWidget {
             child: Text("|"),
           ),
           TopPages(
-            texto: 'Bomba poço',
-            rota: AllChartsPage(),
+            texto: 'Visão Geral',
+            rota: const AllChartsPage(),
           ),
         ],
       ),

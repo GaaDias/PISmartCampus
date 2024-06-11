@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botões</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* Cor de fundo do corpo da página */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px; 
+            flex-wrap: wrap;
+            max-width: 600px; 
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; 
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff; 
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3; 
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <div class="column">
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_1')">Water Tank Level - 1</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_2')">Water Tank Level - 2</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_3')">Water Tank Level - 3</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_4')">Water Tank Level - 4</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_5')">Water Tank Level - 5</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_6')">Water Tank Level - 6</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_7')">Water Tank Level - 7</button>
+            <button onclick="redirect('WaterTankLevels/WaterTankLevel_8')">Water Tank Level - 8</button>
+        </div>
+        <div class="column">
+            <button onclick="redirect('Hidrometers/Hidrometer_1')">Hidrometer - 1</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_2')">Hidrometer - 2</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_3')">Hidrometer - 3</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_4')">Hidrometer - 4</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_5')">Hidrometer - 5</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_6')">Hidrometer - 6</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_7')">Hidrometer - 7</button>
+            <button onclick="redirect('Hidrometers/Hidrometer_8')">Hidrometer - 8</button>
+        </div>
+        <div class="column">
+            <button onclick="redirect('ArtesianWell/ArtesianWell')">Artesian Well</button> 
+        </div>
+    </div>
+
+    <script>
+        function redirect(link) {
+            window.location.href = link + '.html'; 
+        }
+    </script>
+</body>
+</html>

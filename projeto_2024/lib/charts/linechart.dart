@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/rendering.dart';
@@ -65,7 +67,7 @@ FlSpotAndTimestamps generateFlSpots(ModelA modelA, int index) {
 
 class _MyLineChartState extends State<MyLineChart> {
   ModelA modelA = ModelA();
-
+  late Timer _timer;
   @override
   void initState() {
     super.initState();
@@ -74,6 +76,39 @@ class _MyLineChartState extends State<MyLineChart> {
     }).catchError((error) {
       print("Error fetching data: $error");
     });
+    _callFunction(modelA, widget.index);
+    _timer = Timer.periodic(Duration(minutes: 15), (timer) {
+      _callFunction(modelA, widget.index);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel the timer to prevent memory leaks
+    super.dispose();
+  }
+
+  void _callFunction(ModelA modelA, int index) {
+    List<dynamic>? spots =
+        modelA.dadosWaterTank[index]['data_distance'] as List<dynamic>?;
+    List<dynamic>? timestamps =
+        modelA.dadosWaterTank[index]['timestamp'] as List<dynamic>?;
+
+    // Replace this with the function you want to call
+    print('Function called at: ${DateTime.now()}');
+    // Example: You can call your function here
+    // yourFunction();
+
+    spots = spots?.sublist(spots.length - 15);
+    timestamps = timestamps?.sublist(timestamps.length - 15);
+
+    for (int i = 0; i < 15; i++) {
+      if (spots?[i] < 1000) {
+        modelA.enviaAlerta("Nome a definir", timestamps?[i], "${spots?[i]}");
+      } else {
+        print("tsa");
+      }
+    }
   }
 
   @override
@@ -219,10 +254,10 @@ class _MyLineChartState extends State<MyLineChart> {
                       },
                     ),
                   ),
-                  topTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
               ),
             ),

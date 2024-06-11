@@ -1,0 +1,150 @@
+
+Fields
+
+    data_boardVoltage
+
+    data_counter
+
+    data_distance
+
+    data_humidity
+
+    data_temperature
+
+    fCnt
+
+    rxInfo_altitude_0
+
+    rxInfo_altitude_1
+
+    rxInfo_latitude_0
+
+    rxInfo_latitude_1
+
+    rxInfo_longitude_0
+
+    rxInfo_longitude_1
+
+    rxInfo_loRaSNR_0
+
+    rxInfo_loRaSNR_1
+
+    rxInfo_rssi_0
+
+    rxInfo_rssi_1
+
+    txInfo_dataRate_spreadFactor
+
+    txInfo_frequency
+
+Tag Keys
+
+    applicationID
+
+    applicationName
+
+    devEUI
+
+    fPort
+
+    host
+
+    nodeName
+
+    rxInfo_mac_0
+
+    rxInfo_mac_1
+
+    rxInfo_name_0
+
+    rxInfo_name_1
+
+    txInfo_adr
+
+    txInfo_codeRate
+
+    txInfo_dataRate_bandwidth
+
+    txInfo_dataRate_modulation
+
+
+
+
+    /api/data/WaterTankLavel
+
+
+
+{
+  "WaterTankLavel_1": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_2": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_3": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_4": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_5": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_6": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_7": {
+    "data_distance": [],
+    "timestamp": []
+  },
+  "WaterTankLavel_8": {
+    "data_distance": [],
+    "timestamp": []
+  }
+}
+
+
+
+"ArtesianWell": {
+    "data_pressure_0": [],
+    "data_pressure_1": []
+    "timestamp": []
+  },
+
+
+{
+  dados:[
+    {
+      "nome" : "WaterTankLavel_1",
+      "data_distance" : [
+        0.5,
+        1.9,
+        ...
+        ],
+      "timestamp" : [  
+        "2024-05-15 18:44:07",
+        "2024-05-15 18:45:03",
+        ...
+       ]
+    },
+    {
+      nome" : "WaterTankLavel_2",
+      "data_distance" : [
+        0.5,
+        1.9,
+        ...
+        ],
+      "timestamp" : [  
+        "2024-05-15 18:44:07",
+        "2024-05-15 18:45:03",
+        ...
+       ]
+    },
+  ]
+}

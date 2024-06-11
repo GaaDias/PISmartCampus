@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/charts/barchart.dart';
-import 'package:projeto_2024/components/clock_widget.dart';
 import 'package:projeto_2024/components/top_nav.dart';
-import 'package:projeto_2024/components/toppages.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
+import 'package:provider/provider.dart';
 
 class HidrometerPage extends StatefulWidget {
   const HidrometerPage({Key? key});
@@ -37,35 +37,6 @@ class _HidrometerPageState extends State<HidrometerPage> {
         _isLoading = false; // Set loading state to false on error as well
       });
     });
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        elapsedSeconds++;
-        if (elapsedSeconds >= tempoReload * 60) {
-          elapsedSeconds = 0;
-          // Call the function to rebuild all children
-          rebuildAllChildren();
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void rebuildAllChildren() {
-    print("Page Reloaded");
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const Material(child: HidrometerPage()),
-      ),
-    );
   }
 
   int currentIndex = 0;
@@ -82,6 +53,8 @@ class _HidrometerPageState extends State<HidrometerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final email = Provider.of<EmailProvider>(context).email;
+
     return _isLoading // Check loading state
         ? const Material(
             child: Scaffold(
@@ -118,7 +91,17 @@ class _HidrometerPageState extends State<HidrometerPage> {
                               corBotao = Colors.transparent;
                             }),
                             child: GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => Material(
+                                      child: AdmPermissionPage(
+                                        email: email,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 5),
