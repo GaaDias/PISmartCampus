@@ -1,8 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
+import 'package:provider/provider.dart';
 
 class NewTankPage extends StatefulWidget {
   const NewTankPage({super.key});
@@ -39,6 +42,7 @@ class _NewTankPageState extends State<NewTankPage> {
     var isMobile = screenSize.width < 600;
 
     String currentPage = 'Nível de água';
+    final email = Provider.of<EmailProvider>(context).email;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +63,14 @@ class _NewTankPageState extends State<NewTankPage> {
                     corBotao = Colors.transparent;
                   }),
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>  AdmPermissionPage(email: email,),
+                        ),
+                      );
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),

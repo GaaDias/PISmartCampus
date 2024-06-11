@@ -11,4 +11,5 @@ urlpatterns = [
     path('altera_adm/',views.altera_adm),
     path('verifica_cadastro/',views.verifica_cadastro),
     path('verifica_adm/',views.verifica_adm),
+    path('envia_alerta/',views.envia_alerta)
 ]

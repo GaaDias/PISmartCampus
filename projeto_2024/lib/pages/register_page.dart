@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
-import 'package:projeto_2024/pages/admPermission_page.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,14 +15,14 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   String currentPage = 'Adicionar colaborador';
-  final formKey = GlobalKey<FormState>(); 
+  final formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
 
   final String apiUrl = 'http://127.0.0.1:8000/cadastra_usuario/';
 
   @override
   void dispose() {
-    _emailController.dispose(); 
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -41,7 +43,9 @@ class _RegisterPageState extends State<RegisterPage> {
         MaterialPageRoute(
           builder: (context) {
             if (page == 'Permissão de ADM') {
-              return const AdmPermissionPage();
+              return const AdmPermissionPage(
+                email: null,
+              );
             } else {
               return const RegisterPage();
             }
@@ -70,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ],
         ),
       );
-      return; 
+      return;
     }
 
     try {
@@ -112,13 +116,14 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           },
         );
-      }else {
+      } else {
         showDialog(
           context: context,
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               title: const Text("Erro"),
-              content: const Text("Falha ao cadastrar o usuário"), // More informative error message
+              content: const Text(
+                  "Falha ao cadastrar o usuário"), // More informative error message
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
@@ -194,7 +199,10 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             ListTile(
-              title: const Text('Adicionar colaborador', style: TextStyle(color: Colors.black),),
+              title: const Text(
+                'Adicionar colaborador',
+                style: TextStyle(color: Colors.black),
+              ),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Adicionar colaborador',
               selectedTileColor: Colors.grey[350],
@@ -264,7 +272,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: ElevatedButton(
                           onPressed: () => cadastrarUsuario(context),
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                            backgroundColor:
+                                MaterialStateProperty.resolveWith<Color>(
                               (Set<MaterialState> states) {
                                 if (states.contains(MaterialState.hovered)) {
                                   return Colors.grey[500]!;
