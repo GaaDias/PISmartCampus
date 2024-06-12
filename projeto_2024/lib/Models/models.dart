@@ -1,38 +1,34 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class ModelA extends ChangeNotifier {
   final List<Map<String, dynamic>> _dadosWaterTank = [];
-  List<Map<String, dynamic>> get dadosWaterTank => _dadosWaterTank;
-
   final List<Map<String, dynamic>> _dadosHidrometer = [];
-  List<Map<String, dynamic>> get dadosHidrometer => _dadosHidrometer;
-
   final List<Map<String, dynamic>> _dadosArtesianWell = [];
+  Timer? _timer;
+
+  List<Map<String, dynamic>> get dadosWaterTank => _dadosWaterTank;
+  List<Map<String, dynamic>> get dadosHidrometer => _dadosHidrometer;
   List<Map<String, dynamic>> get dadosArtesianWell => _dadosArtesianWell;
 
-  Future<Map<String, dynamic>> getHidrometer() async {
-    const apiUrl = 'http://127.0.0.1:5000/api/data/Hidrometer';
+  Map<String, dynamic> _lastSentWaterTank = {};
 
+  Future<void> getHidrometer() async {
+    const apiUrl = 'http://127.0.0.1:5000/api/data/Hidrometer';
     final url = Uri.parse(apiUrl);
 
     try {
-      // Send a GET request to the server
       final response = await http.get(url);
 
-      // Check if the response status code is 200 (OK)
       if (response.statusCode == 200) {
-        // Parse the response body as JSON
         var responseData = json.decode(response.body);
-        // print('API Response: $responseData'); // Debug statement
 
-        // Check if responseData['dados'] is not null and is a List
         if (responseData['dados'] != null && responseData['dados'] is List) {
+          _dadosHidrometer.clear();
           for (int i = 0; i < responseData['dados'].length && i < 8; i++) {
             var data = responseData['dados'][i];
-
-            // Ensure data_distance is a list and is not null
             var dataCounter = data['data_counter'];
             if (dataCounter != null && dataCounter is List) {
               _dadosHidrometer.add({
@@ -47,44 +43,31 @@ class ModelA extends ChangeNotifier {
         } else {
           print('Warning: dados is null or not a list');
         }
-
         notifyListeners();
-
-        // Return the response data
-        return responseData;
       } else {
-        // If the server did not return a 200 OK response, throw an exception.
         throw Exception(
             'Failed to load data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      // Handle errors during the HTTP request
-      print('Error: $e');
+      print('Error fetching Hidrometer data: $e');
       throw Exception('Failed to connect to the server. Error: $e');
     }
   }
 
-  Future<Map<String, dynamic>> getWaterTank() async {
+  Future<void> getWaterTank() async {
     const apiUrl = 'http://127.0.0.1:5000/api/data/WaterTankLavel';
-
     final url = Uri.parse(apiUrl);
 
     try {
-      // Send a GET request to the server
       final response = await http.get(url);
 
-      // Check if the response status code is 200 (OK)
       if (response.statusCode == 200) {
-        // Parse the response body as JSON
         var responseData = json.decode(response.body);
-        // print('API Response: $responseData'); // Debug statement
 
-        // Check if responseData['dados'] is not null and is a List
         if (responseData['dados'] != null && responseData['dados'] is List) {
+          _dadosWaterTank.clear();
           for (int i = 0; i < responseData['dados'].length && i < 8; i++) {
             var data = responseData['dados'][i];
-
-            // Ensure data_distance is a list and is not null
             var dataDistance = data['data_distance'];
             if (dataDistance != null && dataDistance is List) {
               _dadosWaterTank.add({
@@ -99,24 +82,18 @@ class ModelA extends ChangeNotifier {
         } else {
           print('Warning: dados is null or not a list');
         }
-
         notifyListeners();
-
-        // Return the response data
-        return responseData;
       } else {
-        // If the server did not return a 200 OK response, throw an exception.
         throw Exception(
             'Failed to load data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      // Handle errors during the HTTP request
-      print('Error: $e');
+      print('Error fetching WaterTank data: $e');
       throw Exception('Failed to connect to the server. Error: $e');
     }
   }
 
-  Future<Map<String, dynamic>> getArtesianWell() async {
+  Future<void> getArtesianWell() async {
     const apiUrl = 'http://127.0.0.1:5000/api/data/ArtesianWell';
     final url = Uri.parse(apiUrl);
 
@@ -136,7 +113,7 @@ class ModelA extends ChangeNotifier {
               dataPressure0 is List &&
               dataPressure1 != null &&
               dataPressure1 is List) {
-            _dadosArtesianWell.clear(); // Clear previous data
+            _dadosArtesianWell.clear();
             _dadosArtesianWell.add({
               'data_pressure_0': dataPressure0,
               'data_pressure_1': dataPressure1,
@@ -145,59 +122,106 @@ class ModelA extends ChangeNotifier {
             print(
                 'Warning: data_pressure_0 or data_pressure_1 is null or not a list');
           }
-
           notifyListeners();
         } else {
           print('Warning: ArtesianWell is null or not a Map');
         }
-
-        return responseData;
       } else {
         throw Exception(
             'Failed to load data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error fetching ArtesianWell data: $e');
       throw Exception('Failed to connect to the server. Error: $e');
     }
   }
 
-  Future<void> enviaAlerta(String nome, String timestamp, String litros) async {
-    // The URL to which you want to send the POST request
+  void startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 12), (timer) async {
+      await getArtesianWell();
+      await getHidrometer();
+      await getWaterTank();
+
+      getWaterTank().then((_) {
+        if (_dadosWaterTank.isNotEmpty) {
+          for (var item in _dadosWaterTank) {
+            var nome = item['nome'];
+            var timestampList = item['timestamp'];
+            var dataDistance = item['data_distance'];
+
+            // Iterate through both lists and send alerts for each pair
+            for (int i = 0;
+                i < timestampList.length && i < dataDistance.length;
+                i++) {
+              var timestamp = timestampList[i].toString();
+              var distancia = dataDistance[i].toString();
+
+              // Check if the current value has already been sent
+              if (_lastSentWaterTank.containsKey(nome)) {
+                var lastSent = _lastSentWaterTank[nome];
+                if (lastSent['timestamp'] == timestamp &&
+                    lastSent['distancia'] == distancia) {
+                  continue; // Skip if already sent
+                }
+              }
+
+              // Send alert and update the last sent values
+              enviaAlerta(nome, timestamp, distancia);
+              _lastSentWaterTank[nome] = {
+                'timestamp': timestamp,
+                'distancia': distancia
+              };
+            }
+          }
+        }
+      }).catchError((error) {
+        print("Error fetching data: $error");
+      });
+
+      notifyListeners();
+    });
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    stopTimer();
+    super.dispose();
+  }
+
+  Future<void> enviaAlerta(
+      String nome, String timestamp, String distancia) async {
     final url = Uri.parse('http://127.0.0.1:8000/envia_alerta/');
 
-    // The body of the POST request
     final Map<String, dynamic> body = {
       'nome': nome,
       'timestamp': timestamp,
-      'litros': litros
+      'distancia': distancia,
+      'alarme': 600
     };
-
-    // Convert the body to JSON
+    print(body);
     final String jsonBody = json.encode(body);
 
     try {
-      // Make the POST request
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json', // Set the content type to JSON
+          'Content-Type': 'application/json',
         },
         body: jsonBody,
       );
 
-      // Check the response status
       if (response.statusCode == 200) {
-        // The request was successful
         final responseData = json.decode(response.body);
         print('Response data: $responseData');
       } else {
-        // The request failed
         print('Request failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      // Handle any errors that occurred during the request
-      print('An error occurred: $e');
+      print('An error occurred while sending the alert: $e');
     }
   }
 }

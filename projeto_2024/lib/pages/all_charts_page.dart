@@ -14,8 +14,8 @@ ModelA modelA = ModelA();
 
 class _AllChartsPageState extends State<AllChartsPage> {
   var corBotao;
-  double? wvalue = 280;
-  double? hvalue = 240;
+  double? wvalue = 240;
+  double? hvalue = 200;
   List<double> percentages = [];
 
   @override

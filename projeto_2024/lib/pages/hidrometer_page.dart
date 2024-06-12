@@ -8,7 +8,7 @@ import 'package:projeto_2024/charts/barchart.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
-import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/tela_inicial.dart';
 import 'package:provider/provider.dart';
 
 class HidrometerPage extends StatefulWidget {
@@ -19,10 +19,7 @@ class HidrometerPage extends StatefulWidget {
 }
 
 class _HidrometerPageState extends State<HidrometerPage> {
-  var tempoReload = 15;
-  Timer? _timer;
   bool _isLoading = true; // Track loading state
-  int elapsedSeconds = 0;
 
   @override
   void initState() {
@@ -37,6 +34,7 @@ class _HidrometerPageState extends State<HidrometerPage> {
         _isLoading = false; // Set loading state to false on error as well
       });
     });
+    
   }
 
   int currentIndex = 0;
@@ -50,6 +48,8 @@ class _HidrometerPageState extends State<HidrometerPage> {
   }
 
   var corBotao = Colors.transparent;
+
+
 
   @override
   Widget build(BuildContext context) {

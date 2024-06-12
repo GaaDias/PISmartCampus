@@ -10,12 +10,13 @@ from django.shortcuts import render
 from firebase_api.firebase_config import db
 from django.core.mail import EmailMultiAlternatives
 import requests
+import pandas as pd
+
 @api_view(['POST'])
 def cadastra_usuario(request):
     try:
         info = request.data
         email = info.get('email')
-            
         if not email:
             return JsonResponse({'mensagem': 'Todos os campos são obrigatórios'}, status=400)
         
@@ -36,6 +37,7 @@ def cadastra_usuario(request):
 
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao cadastrar usuário: {str(e)}'}, status=500)
+
 
 @api_view(['POST'])
 def verifica_cadastro(request):
@@ -80,7 +82,6 @@ def verifica_adm(request):
                 return JsonResponse({'mensagem': 'Este email não tem permissão'}, status=403)
         else:
             return JsonResponse({'mensagem': 'Este email não está cadastrado'}, status=500)
-
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao verificar usuário: {str(e)}', 'email_cadastrado': False, 'administrador': False}, status=500)
    
@@ -107,40 +108,58 @@ def altera_adm(request):
     
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao atualizar usuário: {str(e)}'}, status=500)
-    
+
+def mensagem_enviada(mensagem, arquivo):
+    with open(arquivo, 'r') as f:
+        mensagens_enviadas = f.readlines()
+        for linha in mensagens_enviadas:
+            if mensagem in linha:
+                return True
+    return False
+
 @api_view(['POST'])
 def envia_alerta(request):
     try:
         info = request.data
-        Nome = info.get('nome')
-        Timestamp = info.get('timestamp')
-        Litros = info.get('litros')
-        
-        token = '6927242072:AAFn5eUJLbslR8FFhqL21oxripeoKQ4tZUw'  
+        distancia = int(info.get('distancia'))
+        alarme = int(info.get('alarme'))
+        timestamp = info.get('timestamp')
+        nome = info.get('nome')
+        if not alarme or not timestamp or not nome or not distancia:
+            return JsonResponse({'mensagem': 'Todos os campos são obrigatórios'}, status=400)
+        token = '6927242072:AAFn5eUJLbslR8FFhqL21oxripeoKQ4tZUw'
         chat_id = '-4280806828'
-        message = Nome + ' ' + Timestamp + ' ' + Litros
-        print(message)
-        # Enviar mensagem
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        data = {"chat_id": chat_id, "text": message}
-        response = requests.post(url, data=data)
-        with open(r'D:\\aquasys\\api_interna\\firebase_api\\controle\\mensagens_enviadas.txt', 'r') as f:
-            mensagens_enviadas = f.readlines()
-            if message+',' in mensagens_enviadas:
-                print(f"Mensagem '{message}' já foi enviada. Pulando envio.")
-                return print('pulando')
-        if response.status_code == 200:
-            print("Mensagem enviada com sucesso!")
-            # Salvar mensagem no arquivo
-            with open(r'D:\\aquasys\\api_interna\\firebase_api\\controle\\mensagens_enviadas.txt', 'a') as f:
-                f.write(f"{message}")
-            
-            return JsonResponse({'mensagem': 'Alerta enviado com sucesso'}, status=200)
-        else:
-            return JsonResponse({'mensagem': f'Erro ao enviar alerta: {str(e)}'}, status=404)
+        distancias_alarme = []
+        verifica_mensagem = []
+        if distancia < int(alarme) :
+            mensagem_verifica = f"{nome}{distancia}{timestamp}{alarme}"
+            mensagem = f"nome: {nome}\ndistancia: {distancia}\ndata: {timestamp}\n"
+            distancias_alarme.append(mensagem)
+            verifica_mensagem.append(mensagem_verifica)
 
+            with open(r'mensagens_enviadas.txt', 'a') as arquivo:
+                for mensagem_verifica in verifica_mensagem:
+                    if mensagem_enviada(mensagem_verifica,'mensagens_enviadas.txt'):
+                        print(f"Mensagem '{mensagem_verifica}' já foi enviada.")
+                    else:
+                        arquivo.write(mensagem_verifica + '\n')
+                        url = f"https://api.telegram.org/bot{token}/sendMessage"
+                        for mensagem in distancias_alarme:
+                            if mensagem_enviada(mensagem,'mensagens_enviadas.txt'):
+                                print('mensagem enviada')
+                            else:
+                                data = {"chat_id": chat_id, "text": mensagem}
+                                response = requests.post(url, data=data)
+                                if response.status_code == 200:
+                                    print("Mensagem enviada com sucesso!")
+                                else:
+                                    return JsonResponse({'mensagem': f'Erro ao enviar alerta: {response.text}'}, status=404)
+        return JsonResponse({'mensagem': 'Alerta enviado com sucesso'}, status=200)
     except Exception as e:
         return JsonResponse({'mensagem': f'Erro ao enviar alerta: {str(e)}'}, status=500)
+
+
+
         
 @api_view(['POST'])
 def envia_email(request):

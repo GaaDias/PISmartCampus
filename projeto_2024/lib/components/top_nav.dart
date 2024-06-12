@@ -12,13 +12,12 @@ class TopNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return const Expanded(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TopPages(
-            texto: 'Nivel de agua',
+            texto: 'Vazão de água',
             rota: HidrometerPage(),
           ),
           Padding(
@@ -26,7 +25,7 @@ class TopNav extends StatelessWidget {
             child: Text("|"),
           ),
           TopPages(
-            texto: 'Vazão de agua',
+            texto: 'Nível de água',
             rota: WaterLevelPage(),
           ),
           Padding(
