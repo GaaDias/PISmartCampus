@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/tela_inicial.dart';
+import 'package:provider/provider.dart';
 
 class ArtesianWellPage extends StatefulWidget {
   const ArtesianWellPage({super.key});
@@ -61,6 +63,8 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final email = Provider.of<EmailProvider>(context).email;
+
     return _isLoading
         ? const Scaffold(
             body: Center(
@@ -86,14 +90,24 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
                       children: [
                         MouseRegion(
                           cursor: MaterialStateMouseCursor.clickable,
-                          onEnter: (_) => setState(() {
+                          onEnter: (event) => setState(() {
                             corBotao = const Color.fromARGB(76, 158, 158, 158);
                           }),
-                          onExit: (_) => setState(() {
+                          onExit: (event) => setState(() {
                             corBotao = Colors.transparent;
                           }),
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => Material(
+                                    child: AdmPermissionPage(
+                                      email: email,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
@@ -101,7 +115,10 @@ class _ArtesianWellPageState extends State<ArtesianWellPage> {
                                 color: corBotao,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Text("Perfil"),
+                              child: const Icon(
+                                Icons.settings,
+                                size: 30.0,
+                              ),
                             ),
                           ),
                         ),

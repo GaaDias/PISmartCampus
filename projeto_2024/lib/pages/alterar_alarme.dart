@@ -1,26 +1,120 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/alterar_alarme.dart';
+import 'package:projeto_2024/pages/error_page.dart';
+import 'package:projeto_2024/pages/maintenance_page.dart';
+import 'package:projeto_2024/pages/newWatertank_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:projeto_2024/pages/register_page.dart';
 import 'package:projeto_2024/pages/tela_inicial.dart';
 
-import 'package:projeto_2024/pages/maintenance_page.dart';
-import 'package:projeto_2024/pages/register_page.dart';
-import 'package:provider/provider.dart';
-
-class NewTankPage extends StatefulWidget {
-  const NewTankPage({super.key, required this.email});
+class AlterarAlarmePage extends StatefulWidget {
   final String? email;
+  const AlterarAlarmePage({super.key, this.email});
 
   @override
-  State<NewTankPage> createState() => _NewTankPageState();
+  State<AlterarAlarmePage> createState() => _AlterarAlarmePageState();
 }
 
-class _NewTankPageState extends State<NewTankPage> {
-  String currentPage = 'Adicionar novo reservatório de água';
+class _AlterarAlarmePageState extends State<AlterarAlarmePage> {
+  String currentPage = 'Alterar Alarmes';
+
+  final formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  bool isLoading = true;
+  bool isAdmin = false;
+
+  final String apiUrl = 'http://127.0.0.1:8000/cadastra_usuario/';
+  final String checkAdminUrl = 'http://127.0.0.1:8000/verifica_adm/';
+
+  @override
+  void initState() {
+    super.initState();
+    checkAdminPermission(); // Check permission on page load
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> checkAdminPermission() async {
+    print(widget.email);
+    try {
+      String userEmail = widget.email?.trim() ?? '';
+      final response = await http.post(
+        Uri.parse(checkAdminUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': userEmail}),
+      );
+      final responseData = json.decode(response.body);
+
+      print(isAdmin);
+      print(responseData['is_admin']);
+      if (response.statusCode == 200) {
+        setState(() {
+          isAdmin = true; // Update the admin status
+        });
+      } else if (response.statusCode == 403) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ErroPage(
+                    mensagemErro: "403 FORBIDDEN",
+                    codigoErro:
+                        "Você não possui autorização para acessar essa página",
+                  )),
+        );
+      } else {
+        popUps(
+          context,
+          "Erro",
+          "Usuário não cadastrado",
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
+        );
+      }
+    } catch (error) {
+      // Handle network errors
+    } finally {
+      setState(() {
+        isLoading = false; // Finished loading, hide loading indicator
+      });
+    }
+  }
+
+  Future<dynamic> popUps(BuildContext context, String title, String texto) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(texto),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => NewTankPage(
+                        email: widget.email,
+                      )),
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> logoutFunc() async {
     try {
       // Sign out from Firebase
@@ -81,13 +175,126 @@ class _NewTankPageState extends State<NewTankPage> {
     }
   }
 
+  Future<void> cadastrarUsuario(BuildContext context) async {
+    String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Erro"),
+          content: const Text("Por favor, insira um e-mail válido"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Sucesso"),
+              content: const Text("Usuário cadastrado com sucesso!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Aviso"),
+              content: const Text("Usuário já cadastrado!"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Erro"),
+              content: const Text("Falha ao cadastrar o usuário"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text("Erro"),
+            content: const Text("Ocorreu um erro ao enviar o e-mail."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var screenSize = MediaQuery.of(context).size;
+
     Color corBotao = Colors.transparent;
 
-    final formKey = GlobalKey<FormState>();
-    var screenSize = MediaQuery.of(context).size;
-    var isMobile = screenSize.width < 600;
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      ); // Show loading indicator
+    }
+
+    if (isAdmin == false) {
+      // Redirect if not admin
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
+        );
+      });
+      return Container(); // Return an empty container while redirecting
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -171,7 +378,8 @@ class _NewTankPageState extends State<NewTankPage> {
               onTap: () {
                 _navigateToPage('Reserva de horário');
               },
-            ),ListTile(
+            ),
+            ListTile(
               title: const Text('Alterar Alarmes',
                   style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
@@ -191,7 +399,8 @@ class _NewTankPageState extends State<NewTankPage> {
             border: Border.all(color: Colors.black),
           ),
           child: SizedBox(
-            width: isMobile ? screenSize.width * 0.9 : screenSize.width * 0.5,
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: MediaQuery.of(context).size.height * 0.3,
             child: SingleChildScrollView(
               child: Form(
                 key: formKey,
@@ -202,103 +411,16 @@ class _NewTankPageState extends State<NewTankPage> {
                       padding: EdgeInsets.symmetric(vertical: 20.0),
                       child: Center(
                         child: Text(
-                          'Adicionar reservatórios:',
+                          'Alterar Alarme:',
                           style: TextStyle(fontSize: 18),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          labelText: 'Nome do reservatório',
-                          labelStyle: TextStyle(color: Colors.black),
-                          floatingLabelStyle: TextStyle(color: Colors.black),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o nome do reservatório';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    const Text(
-                      'Parâmetros dos sensores do nível de água:',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
-                              ),
-                              labelText: 'Nível Mínimo',
-                              labelStyle: TextStyle(color: Colors.black),
-                              floatingLabelStyle:
-                                  TextStyle(color: Colors.black),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null ||
-                                  value.isEmpty ||
-                                  double.tryParse(value) == null ||
-                                  double.parse(value) <= 0) {
-                                return 'Por favor, insira um valor válido';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.black),
-                              ),
-                              labelText: 'Nível Máximo',
-                              labelStyle: TextStyle(color: Colors.black),
-                              floatingLabelStyle:
-                                  TextStyle(color: Colors.black),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null ||
-                                  value.isEmpty ||
-                                  double.tryParse(value) == null) {
-                                return 'Por favor, insira um valor válido';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       child: TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -307,16 +429,10 @@ class _NewTankPageState extends State<NewTankPage> {
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.black),
                           ),
-                          labelText: 'Localização do reservatório',
+                          labelText: 'E-mail do colaborador',
                           labelStyle: TextStyle(color: Colors.black),
                           floatingLabelStyle: TextStyle(color: Colors.black),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira a localização do reservatório';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -324,9 +440,7 @@ class _NewTankPageState extends State<NewTankPage> {
                       child: SizedBox(
                         width: 180,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (formKey.currentState?.validate() ?? false) {}
-                          },
+                          onPressed: () => cadastrarUsuario(context),
                           style: ButtonStyle(
                             backgroundColor:
                                 MaterialStateProperty.resolveWith<Color>(
@@ -351,24 +465,6 @@ class _NewTankPageState extends State<NewTankPage> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(
-      BuildContext context, String title, String currentPage, bool isMobile) {
-    return InkWell(
-      onTap: () {
-        // Navigate to the corresponding page
-      },
-      child: Text(
-        title,
-        style: TextStyle(
-          color: currentPage == title ? Colors.black87 : Colors.black,
-          fontSize: isMobile ? 14 : 20,
-          fontWeight:
-              currentPage == title ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );

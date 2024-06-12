@@ -3,11 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/alterar_alarme.dart';
 import 'package:projeto_2024/pages/error_page.dart';
 
 import 'package:projeto_2024/pages/tela_inicial.dart';
 
-import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/maintenance_page.dart';
 
 import 'package:projeto_2024/pages/newWatertank_page.dart';
@@ -87,6 +87,10 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
               return MaintenancePage(
                 email: widget.email,
               );
+            } else if (page == 'Alterar alarmes') {
+              return AlterarAlarmePage(
+                email: widget.email,
+              );
             } else {
               return AdmPermissionPage(
                 email: widget.email,
@@ -135,9 +139,10 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => NewTankPage(
-            email: widget.email,
-          )),
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
         );
       }
     } catch (error) {
@@ -230,9 +235,10 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => NewTankPage(
-            email: widget.email,
-          )),
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
         );
       });
       return Container(); // Return an empty container while redirecting
@@ -321,6 +327,16 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                 _navigateToPage('Reserva de horário');
               },
             ),
+            ListTile(
+              title: const Text('Alterar Alarmes',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Alterar Alarmes',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Alterar Alarmes');
+              },
+            ),
           ],
         ),
       ),
@@ -405,9 +421,10 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
   backFunc(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => NewTankPage(
-        email: widget.email,
-      )),
+      MaterialPageRoute(
+          builder: (context) => NewTankPage(
+                email: widget.email,
+              )),
     );
   }
 }

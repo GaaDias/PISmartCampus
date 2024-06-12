@@ -5,8 +5,10 @@ import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/charts/linechart.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/tela_inicial.dart';
+import 'package:provider/provider.dart';
 
 class WaterLevelPage extends StatefulWidget {
   const WaterLevelPage({Key? key});
@@ -79,6 +81,8 @@ class _WaterLevelPageState extends State<WaterLevelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final email = Provider.of<EmailProvider>(context).email;
+
     return _isLoading // Check loading state
         ? const Material(
             child: Scaffold(
@@ -115,7 +119,17 @@ class _WaterLevelPageState extends State<WaterLevelPage> {
                               corBotao = Colors.transparent;
                             }),
                             child: GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => Material(
+                                      child: AdmPermissionPage(
+                                        email: email,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 5),
@@ -123,8 +137,9 @@ class _WaterLevelPageState extends State<WaterLevelPage> {
                                   color: corBotao,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Text(
-                                  "Perfil",
+                                child: const Icon(
+                                  Icons.settings,
+                                  size: 30.0,
                                 ),
                               ),
                             ),

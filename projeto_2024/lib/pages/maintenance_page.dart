@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
-import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/alterar_alarme.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:projeto_2024/pages/register_page.dart';
+import 'package:projeto_2024/pages/tela_inicial.dart';
 
 class MaintenancePage extends StatefulWidget {
   final String? email;
@@ -161,6 +162,10 @@ class _MaintenancePageState extends State<MaintenancePage> {
               return MaintenancePage(
                 email: widget.email,
               );
+            } else if (page == 'Alterar alarmes') {
+              return AlterarAlarmePage(
+                email: widget.email,
+              );
             } else {
               return AdmPermissionPage(
                 email: widget.email,
@@ -262,6 +267,16 @@ class _MaintenancePageState extends State<MaintenancePage> {
                 _navigateToPage('Reserva de horário');
               },
             ),
+            ListTile(
+              title: const Text('Alterar Alarmes',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Alterar Alarmes',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Alterar Alarmes');
+              },
+            ),
           ],
         ),
       ),
@@ -286,7 +301,9 @@ class _MaintenancePageState extends State<MaintenancePage> {
                   const SizedBox(height: 15),
                   Center(
                     child: Container(
-                      width: isMobile ? screenSize.width * 0.9 : screenSize.width * 0.5,
+                      width: isMobile
+                          ? screenSize.width * 0.9
+                          : screenSize.width * 0.5,
                       padding: const EdgeInsets.all(10.0),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black),
@@ -295,16 +312,23 @@ class _MaintenancePageState extends State<MaintenancePage> {
                         alignment: WrapAlignment.spaceEvenly,
                         spacing: 10.0,
                         runSpacing: 10.0,
-                        children: availableTimes.map((time) => ElevatedButton(
-                          onPressed: () => setState(() => selectedTime = time),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selectedTime == time ? azulPadrao : Colors.grey[300],
-                            textStyle: const TextStyle(color: Colors.black),
-                          ),
-                          child: Text(time, 
-                          style: const TextStyle(fontSize: 15, color: Colors.black),
-                          textAlign: TextAlign.center),
-                        )).toList(),
+                        children: availableTimes
+                            .map((time) => ElevatedButton(
+                                  onPressed: () =>
+                                      setState(() => selectedTime = time),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: selectedTime == time
+                                        ? azulPadrao
+                                        : Colors.grey[300],
+                                    textStyle:
+                                        const TextStyle(color: Colors.black),
+                                  ),
+                                  child: Text(time,
+                                      style: const TextStyle(
+                                          fontSize: 15, color: Colors.black),
+                                      textAlign: TextAlign.center),
+                                ))
+                            .toList(),
                       ),
                     ),
                   ),
@@ -316,7 +340,9 @@ class _MaintenancePageState extends State<MaintenancePage> {
                   const SizedBox(height: 15),
                   Center(
                     child: Container(
-                      width: isMobile ? screenSize.width * 0.9 : screenSize.width * 0.5,
+                      width: isMobile
+                          ? screenSize.width * 0.9
+                          : screenSize.width * 0.5,
                       padding: const EdgeInsets.all(10.0),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black),
@@ -325,39 +351,45 @@ class _MaintenancePageState extends State<MaintenancePage> {
                         alignment: WrapAlignment.spaceEvenly,
                         spacing: 10.0,
                         runSpacing: 10.0,
-                        children: availableDates.map((date) => ElevatedButton(
-                          onPressed: () => setState(() => selectedDate = date),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selectedDate == date ? azulPadrao : Colors.grey[300],
-                            textStyle: const TextStyle(color: Colors.black),
-                          ),
-                          child: Text(DateFormat('dd/MM').format(date), 
-                          style: const TextStyle(fontSize: 15, color: Colors.black),
-                          textAlign: TextAlign.center),
-                        )).toList(),
+                        children: availableDates
+                            .map((date) => ElevatedButton(
+                                  onPressed: () =>
+                                      setState(() => selectedDate = date),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: selectedDate == date
+                                        ? azulPadrao
+                                        : Colors.grey[300],
+                                    textStyle:
+                                        const TextStyle(color: Colors.black),
+                                  ),
+                                  child: Text(DateFormat('dd/MM').format(date),
+                                      style: const TextStyle(
+                                          fontSize: 15, color: Colors.black),
+                                      textAlign: TextAlign.center),
+                                ))
+                            .toList(),
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                          onPressed: () => sendReservation(context),
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.resolveWith<Color>(
-                              (Set<MaterialState> states) {
-                                if (states.contains(MaterialState.hovered)) {
-                                  return Colors.grey[500]!;
-                                }
-                                return Colors.grey[300]!;
-                              },
-                            ),
-                          ),
-                          child: const Text(
-                            'Reservar',
-                            style: TextStyle(fontSize: 18, color: Colors.black),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                    onPressed: () => sendReservation(context),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.hovered)) {
+                            return Colors.grey[500]!;
+                          }
+                          return Colors.grey[300]!;
+                        },
+                      ),
+                    ),
+                    child: const Text(
+                      'Reservar',
+                      style: TextStyle(fontSize: 18, color: Colors.black),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -367,7 +399,8 @@ class _MaintenancePageState extends State<MaintenancePage> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, String title, String currentPage, bool isMobile) {
+  Widget _buildMenuItem(
+      BuildContext context, String title, String currentPage, bool isMobile) {
     return InkWell(
       onTap: () {
         // Navigate to the corresponding page
@@ -377,7 +410,8 @@ class _MaintenancePageState extends State<MaintenancePage> {
         style: TextStyle(
           color: currentPage == title ? Colors.black87 : Colors.black,
           fontSize: isMobile ? 14 : 20,
-          fontWeight: currentPage == title ? FontWeight.bold : FontWeight.normal,
+          fontWeight:
+              currentPage == title ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );

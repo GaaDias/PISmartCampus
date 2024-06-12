@@ -137,48 +137,59 @@ class ModelA extends ChangeNotifier {
   }
 
   void startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 12), (timer) async {
-      await getArtesianWell();
-      await getHidrometer();
-      await getWaterTank();
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) async {
+      try {
+        await getArtesianWell();
+      } catch (e) {
+        print('Error fetching ArtesianWell data: $e');
+      }
 
-      getWaterTank().then((_) {
-        if (_dadosWaterTank.isNotEmpty) {
-          for (var item in _dadosWaterTank) {
-            var nome = item['nome'];
-            var timestampList = item['timestamp'];
-            var dataDistance = item['data_distance'];
+      try {
+        await getHidrometer();
+      } catch (e) {
+        print('Error fetching Hidrometer data: $e');
+      }
 
-            // Iterate through both lists and send alerts for each pair
-            for (int i = 0;
-                i < timestampList.length && i < dataDistance.length;
-                i++) {
-              var timestamp = timestampList[i].toString();
-              var distancia = dataDistance[i].toString();
+      try {
+        await getWaterTank();
+      } catch (e) {
+        print('Error fetching WaterTank data: $e');
+      }
 
-              // Check if the current value has already been sent
+      if (_dadosWaterTank.isNotEmpty) {
+        for (var item in _dadosWaterTank) {
+          var nome = item['nome'];
+          var timestampList = item['timestamp'];
+          var dataDistance = item['data_distance'];
+
+          for (int i = 0;
+              i < timestampList.length && i < dataDistance.length;
+              i++) {
+            var timestamp = timestampList[i].toString();
+            var distancia = dataDistance[i].toString();
+
+            if (int.tryParse(distancia) != null && int.parse(distancia) < 60) {
               if (_lastSentWaterTank.containsKey(nome)) {
                 var lastSent = _lastSentWaterTank[nome];
                 if (lastSent['timestamp'] == timestamp &&
                     lastSent['distancia'] == distancia) {
-                  continue; // Skip if already sent
+                  continue;
                 }
               }
 
-              // Send alert and update the last sent values
-              enviaAlerta(nome, timestamp, distancia);
-              _lastSentWaterTank[nome] = {
-                'timestamp': timestamp,
-                'distancia': distancia
-              };
+              try {
+                await enviaAlerta(nome, timestamp, distancia);
+                _lastSentWaterTank[nome] = {
+                  'timestamp': timestamp,
+                  'distancia': distancia
+                };
+              } catch (e) {
+                print('Error sending alert for $nome: $e');
+              }
             }
           }
         }
-      }).catchError((error) {
-        print("Error fetching data: $error");
-      });
-
-      notifyListeners();
+      }
     });
   }
 
@@ -200,7 +211,7 @@ class ModelA extends ChangeNotifier {
       'nome': nome,
       'timestamp': timestamp,
       'distancia': distancia,
-      'alarme': 600
+      'alarme': 60
     };
     print(body);
     final String jsonBody = json.encode(body);
