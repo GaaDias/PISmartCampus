@@ -1,16 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/rendering.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:provider/provider.dart';
 
 class MyLineChart extends StatefulWidget {
   final double height;
   final double width;
-
   final int index;
+
   const MyLineChart({
     super.key,
     required this.index,
@@ -41,7 +39,7 @@ FlSpotAndTimestamps generateFlSpots(ModelA modelA, int index) {
 
     if (dataCounter != null && timestampsData != null) {
       int length = dataCounter.length;
-      int start = length > 15 ? length - 15 : 0;
+      int start = 0;
 
       for (int i = start; i < length; i++) {
         spots.add(FlSpot(i - start.toDouble(), dataCounter[i].toDouble()));
@@ -66,56 +64,34 @@ FlSpotAndTimestamps generateFlSpots(ModelA modelA, int index) {
 }
 
 class _MyLineChartState extends State<MyLineChart> {
-  ModelA modelA = ModelA();
-  late Timer _timer;
   @override
   void initState() {
     super.initState();
+    final modelA = context.read<ModelA>();
+    modelA.startTimer(); // Start the timer to reload data every 15 minutes
     modelA.getWaterTank().then((_) {
       setState(() {}); // Trigger rebuild
     }).catchError((error) {
       print("Error fetching data: $error");
     });
-    _callFunction(modelA, widget.index);
-    _timer = Timer.periodic(Duration(minutes: 15), (timer) {
-      _callFunction(modelA, widget.index);
-    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancel the timer to prevent memory leaks
+    final modelA = context.read<ModelA>();
+    modelA.stopTimer(); // Stop the timer when the widget is disposed
     super.dispose();
-  }
-
-  void _callFunction(ModelA modelA, int index) {
-    List<dynamic>? spots =
-        modelA.dadosWaterTank[index]['data_distance'] as List<dynamic>?;
-    List<dynamic>? timestamps =
-        modelA.dadosWaterTank[index]['timestamp'] as List<dynamic>?;
-
-    // Replace this with the function you want to call
-    print('Function called at: ${DateTime.now()}');
-    // Example: You can call your function here
-    // yourFunction();
-
-    spots = spots?.sublist(spots.length - 15);
-    timestamps = timestamps?.sublist(timestamps.length - 15);
-
-    for (int i = 0; i < 15; i++) {
-      if (spots?[i] < 1000) {
-        modelA.enviaAlerta("Nome a definir", timestamps?[i], "${spots?[i]}");
-      } else {
-        print("tsa");
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return modelA.dadosWaterTank.isNotEmpty
-        ? buildChart()
-        : buildLoadingIndicator();
+    return Consumer<ModelA>(
+      builder: (context, modelA, child) {
+        return modelA.dadosWaterTank.isNotEmpty
+            ? buildChart(modelA)
+            : buildLoadingIndicator();
+      },
+    );
   }
 
   Widget buildLoadingIndicator() {
@@ -124,13 +100,13 @@ class _MyLineChartState extends State<MyLineChart> {
     );
   }
 
-  Widget buildChart() {
+  Widget buildChart(ModelA modelA) {
     List<dynamic>? dataCounter =
         modelA.dadosWaterTank[widget.index]['data_distance'] as List<dynamic>?;
 
     double maxY = 1.0;
     if (dataCounter != null && dataCounter.isNotEmpty) {
-      int length = dataCounter.length > 15 ? 15 : dataCounter.length;
+      int length = dataCounter.length;
       maxY = (dataCounter
                       .sublist(0, length)
                       .reduce(
@@ -182,7 +158,6 @@ class _MyLineChartState extends State<MyLineChart> {
               LineChartData(
                 minX: 0,
                 minY: 0,
-                maxX: 15,
                 maxY: maxY,
                 lineBarsData: [
                   LineChartBarData(
@@ -233,7 +208,7 @@ class _MyLineChartState extends State<MyLineChart> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 64,
-                      interval: 1,
+                      interval: timestamps.length / 5,
                       getTitlesWidget: (value, meta) {
                         if (value.toInt() < timestamps.length) {
                           return SideTitleWidget(

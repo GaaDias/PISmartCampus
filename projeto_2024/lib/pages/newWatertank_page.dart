@@ -4,7 +4,7 @@ import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
-import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/tela_inicial.dart';
 import 'package:provider/provider.dart';
 
 class NewTankPage extends StatefulWidget {

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:projeto_2024/pages/artesian_well_page.dart';
-import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/tela_inicial.dart';
 import 'package:projeto_2024/pages/hidrometer_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
 import 'package:projeto_2024/pages/maintenance_page.dart';
@@ -33,7 +33,8 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => EmailProvider()),
+        ChangeNotifierProvider(create: (context) => EmailProvider()),
+        ChangeNotifierProvider(create: (context) => ModelA()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

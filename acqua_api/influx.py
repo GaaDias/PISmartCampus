@@ -26,7 +26,7 @@ def get_WaterTankLavel():
     for nodename in range(1, 9):  
         query = f'''
             from(bucket:"{bucket}") 
-                |> range(start: -1h)
+                |> range(start: -15m)
                 |> filter(fn: (r) => r._measurement == "WaterTankLavel")
                 |> filter(fn: (r) => r.nodeName == "WaterTankLavel_{nodename}")
                 |> filter(fn: (r) => r._field == "data_distance")
@@ -54,7 +54,7 @@ def get_Hidrometer():
     for nodename in range(1, 9):  
         query = f'''
             from(bucket:"{bucket}") 
-                |> range(start: -1h)
+                |> range(start: -15m)
                 |> filter(fn: (r) => r._measurement == "Hidrometer")
                 |> filter(fn: (r) => r.nodeName == "Hidrometer_{nodename}")
                 |> filter(fn: (r) => r._field == "data_counter")
@@ -79,7 +79,7 @@ def get_Hidrometer():
 def get_ArtesianWell():
     query = f'''
         from(bucket:"{bucket}")
-            |> range(start: -1h)
+            |> range(start: -15m)
             |> filter(fn: (r) => r._measurement == "ArtesianWell")
             |> filter(fn: (r) => r.nodeName == "ArtesianWell_1")
             |> filter(fn: (r) => r._field == "data_pressure_0" or r._field == "data_pressure_1")

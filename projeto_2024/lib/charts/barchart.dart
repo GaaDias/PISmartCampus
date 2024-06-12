@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:provider/provider.dart';
 
 class MyBarChart extends StatefulWidget {
   final int index;
-  const MyBarChart({Key? key, required this.index}) : super(key: key);
+  const MyBarChart({super.key, required this.index});
 
   @override
   State<MyBarChart> createState() => _MyBarChartState();
@@ -30,17 +31,16 @@ BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
 
     if (dataHidro != null && timestampsData != null) {
       int length = dataHidro.length;
-      int start = length > 15 ? length - 15 : 0;
 
-      for (int i = start; i < length; i++) {
+      for (int i = 0; i < length; i++) {
         barGroups.add(
           BarChartGroupData(
-            x: i - start, // adjust x to start from 0
+            x: i, // adjust x to match the index
             barRods: [
               BarChartRodData(
                 toY: dataHidro[i].toDouble(),
                 color: azulPadrao,
-                width: 15,
+                width: 5,
               )
             ],
           ),
@@ -58,7 +58,7 @@ BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
               BarChartRodData(
                 toY: 0.0,
                 color: Colors.blue,
-                width: 15,
+                width: 5,
               )
             ],
           ),
@@ -75,7 +75,7 @@ BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
             BarChartRodData(
               toY: 0.0,
               color: Colors.blue,
-              width: 15,
+              width: 5,
             )
           ],
         ),
@@ -88,16 +88,11 @@ BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
 }
 
 class _MyBarChartState extends State<MyBarChart> {
-  ModelA modelA = ModelA();
-
-  void reloadData() {
-    // Call setState to trigger a rebuild
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
+    final modelA = context.read<ModelA>();
+    modelA.startTimer(); // Start the timer to reload data every 15 minutes
     modelA.getHidrometer().then((_) {
       setState(() {}); // Trigger rebuild
     }).catchError((error) {
@@ -106,10 +101,21 @@ class _MyBarChartState extends State<MyBarChart> {
   }
 
   @override
+  void dispose() {
+    final modelA = context.read<ModelA>();
+    modelA.stopTimer(); // Stop the timer when the widget is disposed
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return modelA.dadosHidrometer.isNotEmpty
-        ? buildChart()
-        : buildLoadingIndicator();
+    return Consumer<ModelA>(
+      builder: (context, modelA, child) {
+        return modelA.dadosHidrometer.isNotEmpty
+            ? buildChart(modelA)
+            : buildLoadingIndicator();
+      },
+    );
   }
 
   Widget buildLoadingIndicator() {
@@ -118,13 +124,13 @@ class _MyBarChartState extends State<MyBarChart> {
     );
   }
 
-  Widget buildChart() {
+  Widget buildChart(ModelA modelA) {
     List<dynamic>? dataHidro =
         modelA.dadosHidrometer[widget.index]['data_counter'] as List<dynamic>?;
 
     double maxY = 1.0;
     if (dataHidro != null && dataHidro.isNotEmpty) {
-      int length = dataHidro.length > 15 ? 15 : dataHidro.length;
+      int length = dataHidro.length;
       List<dynamic> lastValues = dataHidro.sublist(dataHidro.length - length);
       maxY = (lastValues
                       .reduce(
@@ -138,6 +144,9 @@ class _MyBarChartState extends State<MyBarChart> {
     final barChartDataAndTimestamps = generateBarGroups(modelA, widget.index);
     final barGroups = barChartDataAndTimestamps.barGroups;
     final timestamps = barChartDataAndTimestamps.timestamps;
+
+    // Calculate the interval for the x-axis titles
+    double interval = (timestamps.length / 5).ceilToDouble();
 
     return Container(
       height: 520,
@@ -193,27 +202,9 @@ class _MyBarChartState extends State<MyBarChart> {
                 titlesData: FlTitlesData(
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
-                      showTitles: true,
+                      showTitles: false,
                       reservedSize: 64,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        if (value.toInt() < timestamps.length) {
-                          return SideTitleWidget(
-                            axisSide: meta.axisSide,
-                            angle: 5.7,
-                            child: Text(
-                              timestamps[value.toInt()],
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const Text('');
-                        }
-                      },
+                      interval: 15,
                     ),
                   ),
                   topTitles:
