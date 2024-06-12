@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
+import 'package:projeto_2024/pages/alterar_alarme.dart';
 import 'package:projeto_2024/pages/error_page.dart';
-import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/maintenance_page.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:projeto_2024/pages/tela_inicial.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, required this.email});
@@ -75,9 +76,10 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => NewTankPage(
-            email: widget.email,
-          )),
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
         );
       }
     } catch (error) {
@@ -99,9 +101,10 @@ class _RegisterPageState extends State<RegisterPage> {
           TextButton(
             onPressed: () => Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => NewTankPage(
-            email: widget.email,
-          )),
+              MaterialPageRoute(
+                  builder: (context) => NewTankPage(
+                        email: widget.email,
+                      )),
             ),
             child: const Text("OK"),
           ),
@@ -151,6 +154,10 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             } else if (page == 'Reserva de horário') {
               return MaintenancePage(
+                email: widget.email,
+              );
+            } else if (page == 'Alterar alarmes') {
+              return AlterarAlarmePage(
                 email: widget.email,
               );
             } else {
@@ -278,9 +285,10 @@ class _RegisterPageState extends State<RegisterPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => NewTankPage(
-            email: widget.email,
-          )),
+          MaterialPageRoute(
+              builder: (context) => NewTankPage(
+                    email: widget.email,
+                  )),
         );
       });
       return Container(); // Return an empty container while redirecting
@@ -367,6 +375,15 @@ class _RegisterPageState extends State<RegisterPage> {
               selectedTileColor: Colors.grey[350],
               onTap: () {
                 _navigateToPage('Reserva de horário');
+              },
+            ),ListTile(
+              title: const Text('Alterar Alarmes',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Alterar Alarmes',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Alterar Alarmes');
               },
             ),
           ],

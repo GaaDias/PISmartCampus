@@ -34,7 +34,6 @@ class _HidrometerPageState extends State<HidrometerPage> {
         _isLoading = false; // Set loading state to false on error as well
       });
     });
-    
   }
 
   int currentIndex = 0;
@@ -48,8 +47,6 @@ class _HidrometerPageState extends State<HidrometerPage> {
   }
 
   var corBotao = Colors.transparent;
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +106,9 @@ class _HidrometerPageState extends State<HidrometerPage> {
                                   color: corBotao,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Text(
-                                  "Perfil",
+                                child: const Icon(
+                                  Icons.settings,
+                                  size: 30.0,
                                 ),
                               ),
                             ),

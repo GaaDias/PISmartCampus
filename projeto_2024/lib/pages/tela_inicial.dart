@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/components/forms.dart';
-import 'package:projeto_2024/pages/all_charts_page.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {

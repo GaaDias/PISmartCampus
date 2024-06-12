@@ -75,7 +75,7 @@ BarChartDataAndTimestamps generateBarGroups(ModelA modelA, int index) {
             BarChartRodData(
               toY: 0.0,
               color: Colors.blue,
-              width: 5,
+              width: 8,
             )
           ],
         ),
@@ -163,7 +163,7 @@ class _MyBarChartState extends State<MyBarChart> {
         ],
         borderRadius: BorderRadius.circular(15),
       ),
-      padding: const EdgeInsets.only(left: 10, bottom: 10, right: 40, top: 20),
+      padding: const EdgeInsets.only(left: 10, bottom: 50, right: 40, top: 20),
       child: Column(
         children: [
           const Center(
