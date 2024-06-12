@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/error_page.dart';
 import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/maintenance_page.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:projeto_2024/pages/register_page.dart';
 import 'package:http/http.dart' as http;
@@ -38,6 +40,24 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
     super.dispose();
   }
 
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
+  }
+
   void _navigateToPage(String page) {
     if (page != currentPage) {
       setState(() {
@@ -51,8 +71,22 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
               return AdmPermissionPage(
                 email: widget.email,
               );
+            } else if (page == 'Adicionar colaborador') {
+              return RegisterPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar novo reservatório de água') {
+              return NewTankPage(
+                email: widget.email,
+              );
+            } else if (page == 'Reserva de horário') {
+              return MaintenancePage(
+                email: widget.email,
+              );
             } else {
-              return const RegisterPage();
+              return AdmPermissionPage(
+                email: widget.email,
+              );
             }
           },
         ),
@@ -97,7 +131,9 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const NewTankPage()),
+          MaterialPageRoute(builder: (context) => NewTankPage(
+            email: widget.email,
+          )),
         );
       }
     } catch (error) {
@@ -161,15 +197,12 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
   Future<dynamic> popUps(BuildContext context, String title, String texto) {
     return showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: Text(title),
         content: Text(texto),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const NewTankPage()),
-            ),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text("OK"),
           ),
         ],
@@ -181,50 +214,57 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
 
+    Color corBotao = Colors.transparent;
+
     if (isLoading) {
       return const Center(
           child: CircularProgressIndicator()); // Show loading indicator
     }
 
-    if (isAdmin = false) {
+    if (isAdmin == false) {
       // Redirect if not admin
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const NewTankPage()),
+          MaterialPageRoute(builder: (context) => NewTankPage(
+            email: widget.email,
+          )),
         );
       });
       return Container(); // Return an empty container while redirecting
     }
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size(screenSize.width, 1000),
-        child: Container(
-          color: azulPadrao,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
+      appBar: AppBar(
+        backgroundColor: azulPadrao,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const TopNav(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                ),
-                const SizedBox(width: 30),
-                const Text('Perfil', style: TextStyle(fontSize: 20)),
-                const Spacer(),
-                SizedBox(
-                  width: screenSize.width / 50,
-                ),
                 IconButton(
-                  onPressed: () => logoutFunc(),
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegisterPage(
+                          email: widget.email,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: logoutFunc,
+                  icon: const Icon(Icons.logout_outlined),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -242,7 +282,7 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
                   style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Adicionar colaborador',
-              selectedTileColor: Colors.grey[300],
+              selectedTileColor: Colors.grey[350],
               onTap: () {
                 _navigateToPage('Adicionar colaborador');
               },
@@ -255,6 +295,26 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
               selectedTileColor: Colors.grey[350],
               onTap: () {
                 _navigateToPage('Permissão de ADM');
+              },
+            ),
+            ListTile(
+              title: const Text('Adicionar novo reservatório de água',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar novo reservatório de água',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar novo reservatório de água');
+              },
+            ),
+            ListTile(
+              title: const Text('Reservar horário para manutenção',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Reserva de horário',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Reserva de horário');
               },
             ),
           ],
@@ -338,28 +398,12 @@ class _AdmPermissionPageState extends State<AdmPermissionPage> {
     );
   }
 
-  Future<void> logoutFunc() async {
-    try {
-      // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
-
-      // Navigate back to login page
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const Material(child: LoginPage()),
-        ),
-      );
-    } catch (e) {
-      print("Error during sign-out: $e");
-      // Handle error, e.g., show a dialog with the error message
-    }
-  }
-
   backFunc(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const NewTankPage()),
+      MaterialPageRoute(builder: (context) => NewTankPage(
+        email: widget.email,
+      )),
     );
   }
 }

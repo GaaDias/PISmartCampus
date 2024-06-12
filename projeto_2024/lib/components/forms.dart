@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:projeto_2024/Models/models.dart';
 import 'dart:convert';
 import 'package:projeto_2024/pages/hidrometer_page.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 import 'package:provider/provider.dart';
 
 class Forms extends StatefulWidget {
