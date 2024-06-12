@@ -105,9 +105,7 @@ class _FormsState extends State<Forms> {
             // Navigate to the main page on successful validation
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => RegisterPage(
-                  email: email, // Pass the authenticated email here
-                ),
+                builder: (context) => const HidrometerPage(),
               ),
             );
           } else {
