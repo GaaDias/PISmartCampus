@@ -5,16 +5,22 @@ import 'package:projeto_2024/colors/colors.dart';
 import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
 import 'package:projeto_2024/pages/tela_inicial.dart';
+
+import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/maintenance_page.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 import 'package:provider/provider.dart';
 
 class NewTankPage extends StatefulWidget {
-  const NewTankPage({super.key});
+  const NewTankPage({super.key, required this.email});
+  final String? email;
 
   @override
   State<NewTankPage> createState() => _NewTankPageState();
 }
 
 class _NewTankPageState extends State<NewTankPage> {
+  String currentPage = 'Adicionar novo reservatório de água';
   Future<void> logoutFunc() async {
     try {
       // Sign out from Firebase
@@ -33,6 +39,44 @@ class _NewTankPageState extends State<NewTankPage> {
     }
   }
 
+  void _navigateToPage(String page) {
+    if (page != currentPage) {
+      setState(() {
+        currentPage = page;
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            if (page == 'Permissão de ADM') {
+              return AdmPermissionPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar colaborador') {
+              return RegisterPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar novo reservatório de água') {
+              return NewTankPage(
+                email: widget.email,
+              );
+            } else if (page == 'Reserva de horário') {
+              return MaintenancePage(
+                email: widget.email,
+              );
+            } else {
+              return AdmPermissionPage(
+                email: widget.email,
+              );
+            }
+          },
+        ),
+      );
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Color corBotao = Colors.transparent;
@@ -40,9 +84,6 @@ class _NewTankPageState extends State<NewTankPage> {
     final formKey = GlobalKey<FormState>();
     var screenSize = MediaQuery.of(context).size;
     var isMobile = screenSize.width < 600;
-
-    String currentPage = 'Nível de água';
-    final email = Provider.of<EmailProvider>(context).email;
 
     return Scaffold(
       appBar: AppBar(
@@ -54,33 +95,18 @@ class _NewTankPageState extends State<NewTankPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                MouseRegion(
-                  cursor: MaterialStateMouseCursor.clickable,
-                  onEnter: (_) => setState(() {
-                    corBotao = const Color.fromARGB(76, 158, 158, 158);
-                  }),
-                  onExit: (_) => setState(() {
-                    corBotao = Colors.transparent;
-                  }),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>  AdmPermissionPage(email: email,),
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegisterPage(
+                          email: widget.email,
                         ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: corBotao,
-                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text("Perfil"),
-                    ),
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 10),
                 IconButton(
@@ -102,15 +128,45 @@ class _NewTankPageState extends State<NewTankPage> {
                 child: Center(child: Image.asset('assets/images/LogoApp.png')),
               ),
             ),
-            SizedBox(
-              height: 50,
-              child: ListTile(
-                title: const Text("Adicionar reservatórios"),
-                titleAlignment: ListTileTitleAlignment.center,
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
+            ListTile(
+              title: const Text('Adicionar colaborador',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar colaborador',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar colaborador');
+              },
+            ),
+            ListTile(
+              title: const Text('Permissão de ADM',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Permissão de ADM',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Permissão de ADM');
+              },
+            ),
+            ListTile(
+              title: const Text('Adicionar novo reservatório de água',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar novo reservatório de água',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar novo reservatório de água');
+              },
+            ),
+            ListTile(
+              title: const Text('Reservar horário para manutenção',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Reserva de horário',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Reserva de horário');
+              },
             ),
           ],
         ),

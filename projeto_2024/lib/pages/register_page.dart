@@ -1,13 +1,18 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:projeto_2024/Models/models.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/components/top_nav.dart';
 import 'package:projeto_2024/pages/adm_permission_page.dart';
+import 'package:projeto_2024/pages/error_page.dart';
+import 'package:projeto_2024/pages/login_page.dart';
+import 'package:projeto_2024/pages/maintenance_page.dart';
+import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({super.key, required this.email});
+  final String? email;
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -17,8 +22,17 @@ class _RegisterPageState extends State<RegisterPage> {
   String currentPage = 'Adicionar colaborador';
   final formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
+  bool isLoading = true;
+  bool isAdmin = false;
 
   final String apiUrl = 'http://127.0.0.1:8000/cadastra_usuario/';
+  final String checkAdminUrl = 'http://127.0.0.1:8000/verifica_adm/';
+
+  @override
+  void initState() {
+    super.initState();
+    checkAdminPermission(); // Check permission on page load
+  }
 
   @override
   void dispose() {
@@ -26,11 +40,92 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void logoutFunc(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
+  Future<void> checkAdminPermission() async {
+    print(widget.email);
+    try {
+      String userEmail = widget.email?.trim() ?? '';
+      final response = await http.post(
+        Uri.parse(checkAdminUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': userEmail}),
+      );
+      final responseData = json.decode(response.body);
+
+      print(isAdmin);
+      print(responseData['is_admin']);
+      if (response.statusCode == 200) {
+        setState(() {
+          isAdmin = true; // Update the admin status
+        });
+      } else if (response.statusCode == 403) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ErroPage(
+                    mensagemErro: "403 FORBIDDEN",
+                    codigoErro:
+                        "Você não possui autorização para acessar essa página",
+                  )),
+        );
+      } else {
+        popUps(
+          context,
+          "Erro",
+          "Usuário não cadastrado",
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => NewTankPage(
+            email: widget.email,
+          )),
+        );
+      }
+    } catch (error) {
+      // Handle network errors
+    } finally {
+      setState(() {
+        isLoading = false; // Finished loading, hide loading indicator
+      });
+    }
+  }
+
+  Future<dynamic> popUps(BuildContext context, String title, String texto) {
+    return showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(texto),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => NewTankPage(
+            email: widget.email,
+          )),
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
   }
 
   void _navigateToPage(String page) {
@@ -43,11 +138,25 @@ class _RegisterPageState extends State<RegisterPage> {
         MaterialPageRoute(
           builder: (context) {
             if (page == 'Permissão de ADM') {
-              return const AdmPermissionPage(
-                email: null,
+              return AdmPermissionPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar colaborador') {
+              return RegisterPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar novo reservatório de água') {
+              return NewTankPage(
+                email: widget.email,
+              );
+            } else if (page == 'Reserva de horário') {
+              return MaintenancePage(
+                email: widget.email,
               );
             } else {
-              return const RegisterPage();
+              return AdmPermissionPage(
+                email: widget.email,
+              );
             }
           },
         ),
@@ -122,8 +231,7 @@ class _RegisterPageState extends State<RegisterPage> {
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               title: const Text("Erro"),
-              content: const Text(
-                  "Falha ao cadastrar o usuário"), // More informative error message
+              content: const Text("Falha ao cadastrar o usuário"),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
@@ -155,37 +263,60 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
     var screenSize = MediaQuery.of(context).size;
 
+    Color corBotao = Colors.transparent;
+
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      ); // Show loading indicator
+    }
+
+    if (isAdmin == false) {
+      // Redirect if not admin
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => NewTankPage(
+            email: widget.email,
+          )),
+        );
+      });
+      return Container(); // Return an empty container while redirecting
+    }
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size(screenSize.width, 1000),
-        child: Container(
-          color: azulPadrao,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
+      appBar: AppBar(
+        backgroundColor: azulPadrao,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const TopNav(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                ),
-                const SizedBox(width: 30),
-                const Text('Perfil', style: TextStyle(fontSize: 20)),
-                const Spacer(),
-                SizedBox(
-                  width: screenSize.width / 50,
-                ),
                 IconButton(
-                  onPressed: () => logoutFunc(context),
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegisterPage(
+                          email: widget.email,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: logoutFunc,
+                  icon: const Icon(Icons.logout_outlined),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -199,10 +330,8 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             ListTile(
-              title: const Text(
-                'Adicionar colaborador',
-                style: TextStyle(color: Colors.black),
-              ),
+              title: const Text('Adicionar colaborador',
+                  style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Adicionar colaborador',
               selectedTileColor: Colors.grey[350],
@@ -211,12 +340,33 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
             ListTile(
-              title: const Text('Permissão de ADM'),
+              title: const Text('Permissão de ADM',
+                  style: TextStyle(color: Colors.black)),
               titleAlignment: ListTileTitleAlignment.center,
               selected: currentPage == 'Permissão de ADM',
-              selectedTileColor: Colors.grey[300],
+              selectedTileColor: Colors.grey[350],
               onTap: () {
                 _navigateToPage('Permissão de ADM');
+              },
+            ),
+            ListTile(
+              title: const Text('Adicionar novo reservatório de água',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar novo reservatório de água',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar novo reservatório de água');
+              },
+            ),
+            ListTile(
+              title: const Text('Reservar horário para manutenção',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Reserva de horário',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Reserva de horário');
               },
             ),
           ],
@@ -241,7 +391,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       padding: EdgeInsets.symmetric(vertical: 20.0),
                       child: Center(
                         child: Text(
-                          'Adicionar novo colaborador ao sistema:',
+                          'Adicionar novo colaborador:',
                           style: TextStyle(fontSize: 18),
                         ),
                       ),

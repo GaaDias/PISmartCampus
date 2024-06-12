@@ -1,18 +1,26 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_2024/colors/colors.dart';
+import 'package:projeto_2024/components/top_nav.dart';
+import 'package:projeto_2024/pages/adm_permission_page.dart';
+import 'package:projeto_2024/pages/login_page.dart';
 import 'package:projeto_2024/pages/newWatertank_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 
 class MaintenancePage extends StatefulWidget {
-  const MaintenancePage({super.key});
+  final String? email;
+
+  const MaintenancePage({super.key, required this.email});
 
   @override
   _MaintenancePageState createState() => _MaintenancePageState();
 }
 
 class _MaintenancePageState extends State<MaintenancePage> {
+  String currentPage = 'Reserva de horário';
   final formKey = GlobalKey<FormState>();
   String? selectedTime;
   DateTime? selectedDate;
@@ -25,13 +33,6 @@ class _MaintenancePageState extends State<MaintenancePage> {
     DateTime.now().add(const Duration(days: 3)),
     DateTime.now().add(const Duration(days: 4)),
   ];
-
-  void logoutFunc(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const NewTankPage()),
-    );
-  }
 
   Future<void> sendReservation(BuildContext context) async {
     if (selectedDate == null || selectedTime == null) {
@@ -117,60 +118,98 @@ class _MaintenancePageState extends State<MaintenancePage> {
     }
   }
 
+  Future<void> logoutFunc() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate back to login page
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Material(child: LoginPage()),
+        ),
+      );
+    } catch (e) {
+      print("Error during sign-out: $e");
+      // Handle error, e.g., show a dialog with the error message
+    }
+  }
+
+  void _navigateToPage(String page) {
+    if (page != currentPage) {
+      setState(() {
+        currentPage = page;
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            if (page == 'Permissão de ADM') {
+              return AdmPermissionPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar colaborador') {
+              return RegisterPage(
+                email: widget.email,
+              );
+            } else if (page == 'Adicionar novo reservatório de água') {
+              return NewTankPage(
+                email: widget.email,
+              );
+            } else if (page == 'Reserva de horário') {
+              return MaintenancePage(
+                email: widget.email,
+              );
+            } else {
+              return AdmPermissionPage(
+                email: widget.email,
+              );
+            }
+          },
+        ),
+      );
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
     var isMobile = screenSize.width < 600;
-    String currentPage = 'Nível de água';
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size(screenSize.width, 60),
-        child: Container(
-          color: azulPadrao,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
+      appBar: AppBar(
+        backgroundColor: azulPadrao,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const TopNav(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                ),
-                Expanded(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: isMobile ? 8.0 : screenSize.width / 30,
-                    runSpacing: isMobile ? 8.0 : 0.0,
-                    children: [
-                      _buildMenuItem(context, 'Nível de água', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Vazão de água', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Pressão do poço', currentPage, isMobile),
-                      const Text('|', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                      _buildMenuItem(context, 'Bomba do poço', currentPage, isMobile),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: screenSize.width / 50,
-                ),
-                InkWell(
-                  onTap: () {},
-                  child: const Text(
-                    'Perfil',
-                    style: TextStyle(color: Colors.black, fontSize: 19),
-                  ),
-                ),
                 IconButton(
-                  onPressed: () => logoutFunc(context),
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegisterPage(
+                          email: widget.email,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: logoutFunc,
+                  icon: const Icon(Icons.logout_outlined),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -183,15 +222,45 @@ class _MaintenancePageState extends State<MaintenancePage> {
                 child: Center(child: Image.asset('assets/images/LogoApp.png')),
               ),
             ),
-            SizedBox(
-              height: 50,
-              child: ListTile(
-                title: const Text("Manutenção"),
-                titleAlignment: ListTileTitleAlignment.center,
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
+            ListTile(
+              title: const Text('Adicionar colaborador',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar colaborador',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar colaborador');
+              },
+            ),
+            ListTile(
+              title: const Text('Permissão de ADM',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Permissão de ADM',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Permissão de ADM');
+              },
+            ),
+            ListTile(
+              title: const Text('Adicionar novo reservatório de água',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Adicionar novo reservatório de água',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Adicionar novo reservatório de água');
+              },
+            ),
+            ListTile(
+              title: const Text('Reservar horário para manutenção',
+                  style: TextStyle(color: Colors.black)),
+              titleAlignment: ListTileTitleAlignment.center,
+              selected: currentPage == 'Reserva de horário',
+              selectedTileColor: Colors.grey[350],
+              onTap: () {
+                _navigateToPage('Reserva de horário');
+              },
             ),
           ],
         ),
@@ -232,7 +301,9 @@ class _MaintenancePageState extends State<MaintenancePage> {
                             backgroundColor: selectedTime == time ? azulPadrao : Colors.grey[300],
                             textStyle: const TextStyle(color: Colors.black),
                           ),
-                          child: Text(time),
+                          child: Text(time, 
+                          style: const TextStyle(fontSize: 15, color: Colors.black),
+                          textAlign: TextAlign.center),
                         )).toList(),
                       ),
                     ),
@@ -252,7 +323,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
                       ),
                       child: Wrap(
                         alignment: WrapAlignment.spaceEvenly,
-                                                spacing: 10.0,
+                        spacing: 10.0,
                         runSpacing: 10.0,
                         children: availableDates.map((date) => ElevatedButton(
                           onPressed: () => setState(() => selectedDate = date),
@@ -260,21 +331,33 @@ class _MaintenancePageState extends State<MaintenancePage> {
                             backgroundColor: selectedDate == date ? azulPadrao : Colors.grey[300],
                             textStyle: const TextStyle(color: Colors.black),
                           ),
-                          child: Text(DateFormat('dd/MM').format(date)),
+                          child: Text(DateFormat('dd/MM').format(date), 
+                          style: const TextStyle(fontSize: 15, color: Colors.black),
+                          textAlign: TextAlign.center),
                         )).toList(),
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () => sendReservation(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                      backgroundColor: Colors.grey[300],
-                      textStyle: const TextStyle(fontSize: 18, color: Colors.black),
-                    ),
-                    child: const Text('Reservar'),
-                  ),
+                          onPressed: () => sendReservation(context),
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.resolveWith<Color>(
+                              (Set<MaterialState> states) {
+                                if (states.contains(MaterialState.hovered)) {
+                                  return Colors.grey[500]!;
+                                }
+                                return Colors.grey[300]!;
+                              },
+                            ),
+                          ),
+                          child: const Text(
+                            'Reservar',
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                 ],
               ),
             ),
@@ -300,4 +383,3 @@ class _MaintenancePageState extends State<MaintenancePage> {
     );
   }
 }
-
