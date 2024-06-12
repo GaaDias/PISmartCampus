@@ -26,16 +26,16 @@ class _ErroPageState extends State<ErroPage> {
             children: [
               Text(
                 widget.mensagemErro,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Text(
                 widget.codigoErro,
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
               FloatingActionButton.extended(

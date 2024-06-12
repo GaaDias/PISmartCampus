@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:projeto_2024/Models/models.dart';
 import 'dart:convert';
 import 'package:projeto_2024/pages/hidrometer_page.dart';
+import 'package:projeto_2024/pages/register_page.dart';
 import 'package:provider/provider.dart';
 
 class Forms extends StatefulWidget {
@@ -104,7 +105,9 @@ class _FormsState extends State<Forms> {
             // Navigate to the main page on successful validation
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => const HidrometerPage(),
+                builder: (context) => RegisterPage(
+                  email: email, // Pass the authenticated email here
+                ),
               ),
             );
           } else {
